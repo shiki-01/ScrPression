@@ -28,6 +28,13 @@ export default ts.config(
 		}
 	},
 	{
+		rules: {
+			'svelte/valid-compile': ['error', {
+				ignoreWarnings: ['a11y-click-events-have-key-events']
+			}]
+		}
+	},
+	{
 		ignores: ['build/', '.svelte-kit/', 'dist/']
 	}
 );
