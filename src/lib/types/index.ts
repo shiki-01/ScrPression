@@ -21,6 +21,7 @@ interface Block {
   connections: ConnectionPoint;
   children: string;
   parentId: string;
+  depth: number;
 }
 
 interface WorkspaceState {

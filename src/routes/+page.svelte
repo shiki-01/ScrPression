@@ -34,7 +34,8 @@
 			y: 10
 		},
 		children: '',
-		parentId: ''
+		parentId: '',
+		depth: 0
 	};
 
 	const content2: TBlock = {
@@ -74,7 +75,8 @@
 			y: 10
 		},
 		children: '',
-		parentId: ''
+		parentId: '',
+		depth: 0
 	};
 
 	const content3: TBlock = {
@@ -93,7 +95,8 @@
 			y: 10
 		},
 		children: '',
-		parentId: ''
+		parentId: '',
+		depth: 0
 	};
 
 	function formatOutput(block: TBlock) {
