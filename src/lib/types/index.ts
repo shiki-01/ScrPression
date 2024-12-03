@@ -17,8 +17,8 @@ interface Block {
   contents: (BlockContent | 'space')[];
   position: { x: number; y: number };
   connections: ConnectionPoint;
-  children?: string[];
-  parentId?: string;
+  children: string[];
+  parentId: string;
 }
 
 interface WorkspaceState {

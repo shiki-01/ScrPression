@@ -21,13 +21,15 @@
 			}
 		],
 		connections: {
-			input: false,
+			input: true,
 			output: true
 		},
 		position: {
 			x: 10,
 			y: 10
-		}
+		},
+		children: [],
+		parentId: ''
 	};
 </script>
 

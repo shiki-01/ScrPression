@@ -6,7 +6,7 @@
 {@render children()}
 
 <style>
-	:global(*) {
+	:global(html, body) {
 		user-select: none;
 	}
 </style>
