@@ -4,16 +4,18 @@ interface ConnectionPoint {
 }
 
 interface BlockContent {
+  id: string;
   type: 'normal' | 'container' | 'value';
   text: string;
-  inputType?: string;
-  value?: string;
+  inputType: string;
+  value: string ;
 }
 
 interface Block {
   id: string;
   type: 'normal' | 'container' | 'value';
   title: string;
+  output: string;
   contents: (BlockContent | 'space')[];
   position: { x: number; y: number };
   connections: ConnectionPoint;
