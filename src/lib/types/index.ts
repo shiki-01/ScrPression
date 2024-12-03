@@ -17,7 +17,7 @@ interface Block {
   contents: (BlockContent | 'space')[];
   position: { x: number; y: number };
   connections: ConnectionPoint;
-  children: string[];
+  children: string;
   parentId: string;
 }
 

@@ -6,4 +6,6 @@ const workspace: Writable<WorkspaceState> = writable({
 	blocks: new Map<string, Block>()
 });
 
-export { workspace };
+const blockspace: Writable<HTMLElement | null> = writable(null);
+
+export { workspace, blockspace };

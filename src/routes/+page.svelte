@@ -2,10 +2,10 @@
 	import Icon from '@iconify/svelte';
 	import Block from '$lib/components/Block.svelte';
 	import type { Block as TBlock } from '$lib/types';
-	import { workspace } from '$lib/stores';
+	import { workspace, blockspace } from '$lib/stores';
 
 	const content: TBlock = {
-		id: '1',
+		id: '',
 		title: 'random',
 		type: 'normal',
 		contents: [
@@ -28,7 +28,7 @@
 			x: 10,
 			y: 10
 		},
-		children: [],
+		children: '',
 		parentId: ''
 	};
 </script>
@@ -37,7 +37,7 @@
 	<div class="w-full bg-blue-50 overflow-y-auto p-5 flex flex-col gap-5">
 		<Block strict={true} {content} />
 	</div>
-	<div class="w-full h-full overflow-hidden relative">
+	<div bind:this={$blockspace} class="w-full h-full overflow-hidden relative">
 		{#each $workspace.blocks as [_, block]}
 			<Block content={block} />
 		{/each}
