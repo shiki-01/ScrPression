@@ -37,6 +37,65 @@
 		parentId: ''
 	};
 
+	const content2: TBlock = {
+		id: '',
+		title: '疑似null',
+		output: 'comp("${part}").layer("${null}").transform.${propate}',
+		type: 'normal',
+		contents: [
+			{
+				id: 'part',
+				text: 'Part',
+				type: 'value',
+				inputType: 'text',
+				value: 'head'
+			},
+			{
+				id: 'null',
+				text: 'Null',
+				type: 'value',
+				inputType: 'text',
+				value: 'null'
+			},
+			{
+				id: 'propate',
+				text: 'Property',
+				type: 'value',
+				inputType: 'text',
+				value: 'position'
+			}
+		],
+		connections: {
+			input: true,
+			output: true
+		},
+		position: {
+			x: 10,
+			y: 10
+		},
+		children: '',
+		parentId: ''
+	};
+
+	const content3: TBlock = {
+		id: '',
+		title: '干渉',
+		output: 'value / length(toComp([0,0]), toComp([0.7071,0.7071])) || 0.001;',
+		type: 'normal',
+		contents: [
+		],
+		connections: {
+			input: true,
+			output: true
+		},
+		position: {
+			x: 10,
+			y: 10
+		},
+		children: '',
+		parentId: ''
+	};
+
 	function formatOutput(block: TBlock) {
         let output = block.output;
         block.contents.forEach(content => {
@@ -51,6 +110,8 @@
 <main class="w-[100svw] h-[100svh] grid grid-cols-[250px_1fr] relative">
 	<div class="w-full bg-blue-50 overflow-y-auto p-5 flex flex-col gap-5">
 		<Block strict={true} {content} />
+		<Block strict={true} content={content2} />
+		<Block strict={true} content={content3} />
 	</div>
 	<div class="grid" style="grid-template-rows: 1fr 250px;">
 		<div bind:this={$blockspace} class="w-full h-full overflow-hidden relative">
