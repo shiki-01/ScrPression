@@ -9,6 +9,7 @@
 		title: 'random',
 		output: 'wiggle(${x}, ${y})',
 		type: 'normal',
+		color: 'blue',
 		contents: [
 			{
 				id: 'x',
@@ -40,9 +41,10 @@
 
 	const content2: TBlock = {
 		id: '',
-		title: '疑似null',
+		title: 'null comp',
 		output: 'comp("${part}").layer("${null}").transform.${propate}',
 		type: 'normal',
+		color: 'red',
 		contents: [
 			{
 				id: 'part',
@@ -84,8 +86,8 @@
 		title: '干渉',
 		output: 'value / length(toComp([0,0]), toComp([0.7071,0.7071])) || 0.001;',
 		type: 'normal',
-		contents: [
-		],
+		color: 'orange',
+		contents: [],
 		connections: {
 			input: true,
 			output: true
@@ -100,35 +102,46 @@
 	};
 
 	function formatOutput(block: TBlock) {
-        let output = block.output;
-        block.contents.forEach(content => {
+		let output = block.output;
+		block.contents.forEach(content => {
 			if (content === 'space') return;
-            const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
-            output = output.replace(regex, content.value);
-        });
-        return output;
-    }
+			const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
+			output = output.replace(regex, content.value);
+		});
+		return output;
+	}
 </script>
 
-<main class="w-[100svw] h-[100svh] grid grid-cols-[250px_1fr] relative">
-	<div class="w-full bg-blue-50 overflow-y-auto p-5 flex flex-col gap-5">
+<main class="w-[100svw] h-[100svh] grid grid-cols-[250px_1fr] relative overflow-hidden">
+	<div class="w-full h-full bg-slate-200 overflow-auto p-5 flex flex-col gap-5">
 		<Block strict={true} {content} />
 		<Block strict={true} content={content2} />
 		<Block strict={true} content={content3} />
 	</div>
 	<div class="grid" style="grid-template-rows: 1fr 250px;">
-		<div bind:this={$blockspace} class="w-full h-full overflow-hidden relative">
-			{#each $workspace.blocks as [_, block]}
-				<Block content={block} />
-			{/each}
+		<div
+			class="w-full h-full overflow-hidden relative bg-slate-50"
+			style="
+				background-size: 20px 20px;
+				background-image: radial-gradient(#888 10%, transparent 10%);
+			"
+		>
+			<div
+				bind:this={$blockspace}
+				class="w-full h-full overflow-hidden relative"
+			>
+				{#each $workspace.blocks as [_, block]}
+					<Block content={block} />
+				{/each}
+			</div>
 		</div>
-		<div class="w-full h-full bg-slate-950 p-5">
+		<div class="w-full h-full bg-slate-800 p-5">
 			{#each $workspace.blocks as [_, block]}
-                <div class="text-white mb-2">
-                    <strong>Block ID:</strong> {block.id}<br>
-                    <strong>Output:</strong> {formatOutput(block)}
-                </div>
-            {/each}
+				<div class="text-white mb-2">
+					<strong>Block ID:</strong> {block.id}<br>
+					<strong>Output:</strong> {formatOutput(block)}
+				</div>
+			{/each}
 		</div>
 	</div>
 	<button

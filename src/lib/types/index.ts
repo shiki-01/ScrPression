@@ -14,6 +14,7 @@ interface BlockContent {
 interface Block {
   id: string;
   type: 'normal' | 'container' | 'value';
+  color: 'blue' | 'red' | 'green' | 'yellow' | 'orange' | 'cyan';
   title: string;
   output: string;
   contents: (BlockContent | 'space')[];
