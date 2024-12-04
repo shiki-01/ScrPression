@@ -225,7 +225,10 @@
 				></path>
 			</svg>
 		</div>
-		<div class="w-full h-full flex flex-row items-center justify-center gap-4 align-middle">
+		<div
+			style="color: {ColorPalette[content.color].text};"
+			class="w-full h-full flex flex-row items-center justify-center gap-4 align-middle"
+		>
 			<div class="font-bold whitespace-nowrap">{content.title}</div>
 			<div class="flex flex-row gap-2 align-middle">
 				{#each content.contents as item}

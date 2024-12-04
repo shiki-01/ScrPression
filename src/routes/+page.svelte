@@ -1,8 +1,9 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import Block from '$lib/components/Block.svelte';
-	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { workspace, blockspace, bgscale, bgsize, uisize } from '$lib/stores';
+	import type { Block as TBlock } from '$lib/types';
+	import { workspace, blockspace, canvasPosition } from '$lib/stores';
+	import { useCanvas } from '$lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 
 	const content: TBlock = {
@@ -112,110 +113,47 @@
 		return output;
 	}
 
-	let maxSize = 1000;
+	let width = 2000;
+	let height = 2000;
 
-	function getBlocksSize() {
-		if (!$workspace.blocks.size) return { width: $uisize.width, height: $uisize.height };
+	let scrollX: HTMLElement;
+	let scrollY: HTMLElement;
 
+	function updateCanvasSize() {
 		const blocks = Array.from($workspace.blocks.values());
-		const positions = blocks.map((block) => block.position);
+		if (blocks.length === 0) return;
 
-		const minX = Math.min(...positions.map((p) => p.x));
-		const maxX = Math.max(...positions.map((p) => p.x));
-		const minY = Math.min(...positions.map((p) => p.y));
-		const maxY = Math.max(...positions.map((p) => p.y));
+		const xs = blocks.map((block) => Math.abs(block.position.x));
+		const ys = blocks.map((block) => Math.abs(block.position.y));
+		const maxX = Math.max(...xs);
+		const maxY = Math.max(...ys);
 
-		return {
-			width: Math.min($uisize.width, maxX - minX),
-			height: Math.min($uisize.height, maxY - minY)
-		};
+		width = Math.max(2000, maxX * 2 + 1000);
+		height = Math.max(2000, maxY * 2 + 1000);
 	}
 
-	const bgsizeSet = (window: Window) => {
-		const { innerWidth, innerHeight } = window;
-		const width = Math.max(innerWidth, maxSize);
-		const height = Math.max(innerHeight, maxSize);
-		bgsize.set({ width, height });
-	};
+	const scroll = (position: {x: number, y: number}) => {
+		if (scrollX && scrollY && typeof window !== 'undefined') {
+			const xBarWidth = width / (window.innerWidth - 250);
+			const yBarHeight = height / (window.innerHeight - 250);
 
-	$: $uisize.width = $bgsize.width - 250;
-	$: $uisize.height = $bgsize.height - 250;
+			scrollX.style.width = `${window.innerWidth / xBarWidth}px`;
+			scrollY.style.height = `${window.innerHeight / yBarHeight}px`;
 
-	onMount(() => {
-		bgsizeSet(window);
-		window.addEventListener('resize', () => bgsizeSet(window));
-	});
+			console.log(xBarWidth, yBarHeight);
 
-	let container: HTMLElement;
-	let isDragging = false;
-	let translate = { x: 0, y: 0 };
-	let startPos = { x: 0, y: 0 };
+			const xBarPosX = position.x / xBarWidth;
+			const yBarPosY = position.y / yBarHeight;
 
-	function handleMouseDown(e: MouseEvent) {
-		if (!$blockspace) return;
-		isDragging = true;
-		startPos = {
-			x: e.clientX - translate.x,
-			y: e.clientY - translate.y
-		};
-		$blockspace.style.cursor = 'grabbing';
-	}
-
-	function handleMouseMove(e: MouseEvent) {
-		if (!isDragging || !container || !$blockspace) return;
-
-		if (typeof window !== 'undefined') {
-			e.preventDefault();
-			const cancels = window.document.querySelectorAll('.cancel');
-			for (const cancel of cancels) {
-				if (cancel.contains(e.target as Node)) return;
-			}
-		};
-
-		const containerRect = container.getBoundingClientRect();
-		const blockspaceRect = $blockspace.getBoundingClientRect();
-
-		// 新しい位置を計算
-		let newX = e.clientX - startPos.x;
-		let newY = e.clientY - startPos.y;
-
-		// 制限を設定
-		const minX = containerRect.width - blockspaceRect.width;
-		const minY = containerRect.height - blockspaceRect.height;
-
-		// 範囲内に収める
-		newX = Math.min(0, Math.max(minX, newX));
-		newY = Math.min(0, Math.max(minY, newY));
-
-		translate = { x: newX, y: newY };
-		$blockspace.style.transform = `translate(${newX}px, ${newY}px)`;
-	}
-
-	function handleMouseUp() {
-		if (!$blockspace) return;
-		isDragging = false;
-		$blockspace.style.cursor = 'grab';
-	}
-
-	// リサイズ処理
-	onMount(() => {
-		bgsizeSet(window);
-		window.addEventListener('resize', () => bgsizeSet(window));
-
-		// 初期カーソルスタイルを設定
-		if ($blockspace) {
-			$blockspace.style.cursor = 'grab';
+			scrollX.style.transform = `translateX(${xBarPosX}px)`;
+			scrollY.style.transform = `translateY(${yBarPosY}px)`;
 		}
+	}
 
-		return () => {
-			window.removeEventListener('resize', () => bgsizeSet(window));
-		};
-	});
+	onMount(updateCanvasSize);
 </script>
 
-<svelte:window on:pointermove={handleMouseMove} on:pointerup={handleMouseUp} />
-
-<main class="relative grid h-[100svh] w-[100svw] grid-cols-[250px_1fr] overflow-hidden">
+<main class="relative grid h-[100svh] w-[100svw] grid-cols-[250px_1fr] grid-rows-1 overflow-hidden">
 	<div
 		class="relative flex h-full w-full flex-col items-start gap-5 overflow-auto bg-slate-200 p-5"
 	>
@@ -224,24 +162,29 @@
 		<Block strict={true} content={content3} />
 	</div>
 	<div class="grid" style="grid-template-rows: 1fr 250px;">
-		<div class="relative h-full w-full overflow-hidden" bind:this={container}>
+		<div class="relative h-full w-full overflow-hidden">
 			<!-- svelte-ignore a11y_no_static_element_interactions -->
 			<div
 				bind:this={$blockspace}
+				use:useCanvas
 				class="relative cursor-grab bg-slate-50 active:cursor-grabbing"
-				on:pointerdown={handleMouseDown}
 				style="
-					width: {$bgsize.width + maxSize}px;
-					height: {$bgsize.height + maxSize}px;
+					width: {width}px;
+					height: {height}px;
 					background-size: 20px 20px;
 					background-image: radial-gradient(#888 10%, transparent 10%);
 					will-change: transform;
-					transform: translate({translate.x}px, {translate.y}px);
 				"
 			>
 				{#each $workspace.blocks as [_, block]}
 					<Block content={block} />
 				{/each}
+			</div>
+			<div class="absolute bottom-0 left-0 px-2 pb-2 w-full h-4">
+				<div
+					bind:this={scrollX}
+					class="h-full bg-slate-400 rounded-full"
+				></div>
 			</div>
 		</div>
 		<div class="h-full w-full overflow-auto bg-slate-800 p-5">
