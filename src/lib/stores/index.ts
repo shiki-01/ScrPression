@@ -8,4 +8,8 @@ const workspace: Writable<WorkspaceState> = writable({
 
 const blockspace: Writable<HTMLElement | null> = writable(null);
 
-export { workspace, blockspace };
+const bgsize: Writable<{width: number, height: number}> = writable({width: 0, height: 0});
+const bgscale: Writable<number> = writable(1);
+const uisize: Writable<{width: number, height: number}> = writable({width: 0, height: 0});
+
+export { workspace, blockspace, bgsize, bgscale, uisize };

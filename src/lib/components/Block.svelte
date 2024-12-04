@@ -9,8 +9,17 @@
 
 	let input: HTMLElement;
 	let output: HTMLElement;
+	let block: HTMLElement;
 
 	let field: HTMLInputElement;
+
+	let width: number = 1000;
+	let height: number = 60;
+
+	$: width = block ? block.clientWidth : 1000;
+	$: height = block ? block.clientHeight + 6 : 60;
+
+	let offset = 40;
 
 	const addBlock = () => {
 		const newId = Math.random().toString(36).substring(7);
@@ -45,7 +54,6 @@
 
 				// 子ブロックの位置を更新
 				let currentBlock = block;
-				let offset = 38.5;
 
 				while (currentBlock.children) {
 					const childBlock = ws.blocks.get(currentBlock.children);
@@ -66,7 +74,11 @@
 		handleConnections();
 	};
 
-	const findRootBlock = (ws: WorkspaceState, blockId: string, visited: Set<string> = new Set()): Block | null => {
+	const findRootBlock = (
+		ws: WorkspaceState,
+		blockId: string,
+		visited: Set<string> = new Set()
+	): Block | null => {
 		// 既に訪れたブロックなら無限ループを防ぐためにnullを返す
 		if (visited.has(blockId)) return null;
 
@@ -89,7 +101,7 @@
 		if (!block) return;
 
 		// 深さに応じてオフセットを調整
-		const offsetY = 38.5 + (depth * 2);
+		const offsetY = offset + depth * 2;
 
 		if (block.children) {
 			const childBlock = ws.blocks.get(block.children);
@@ -134,7 +146,7 @@
 		// 位置を更新
 		targetBlock.position = {
 			x: sourceBlock.position.x,
-			y: sourceBlock.position.y + 38.5
+			y: sourceBlock.position.y + offset
 		};
 
 		ws.blocks.set(sourceId, sourceBlock);
@@ -166,8 +178,9 @@
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
+	bind:this={block}
 	class:absolute={!strict}
-	class="cancel"
+	class="cancel -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
 	role="button"
 	tabindex="0"
 	use:draggable={{
@@ -181,41 +194,54 @@
 	}}
 >
 	<div
-		style="background-color: {ColorPalette[content.color].bg}; border-color: {ColorPalette[content.color].border}; color: {ColorPalette[content.color].text}"
-		class="clip-path relative flex h-10 w-fit cursor-pointer rounded-md border-2 border-b-4 px-2.5 py-2"
+		class="relative flex h-12 w-fit cursor-pointer rounded-md items-center justify-center align-middle px-2.5 pb-1"
 		data-id={content.id}
 	>
 		{#if content.connections.input}
 			<span
 				bind:this={input}
 				data-id={content.id}
-				style="background-color: {ColorPalette[content.color].bg}; border-color: {ColorPalette[content.color].border}"
 				class:input={!strict}
-				class="absolute left-3 top-0 h-1 w-6 bg-none border-2"
+				class="absolute left-3 top-0 h-1.5 w-6 rounded-b border-2 border-white/0"
 			></span>
 		{/if}
 		{#if content.connections.output}
 			<span
 				bind:this={output}
 				data-id={content.id}
-				style="background-color: {ColorPalette[content.color].bg}; border-color: {ColorPalette[content.color].border}"
 				class:output={!strict}
-				class="absolute -bottom-2 left-3 h-2 w-6 border-2 border-b-4 border-t-0 rounded-b-[0.25rem]"
-			></span>
+				class="absolute -bottom-2 left-3 h-2 w-6 rounded-b border-2 border-b-4 border-t-0 border-white/0"
+			>
+			</span>
 		{/if}
-		<div class="flex flex-row items-center justify-center gap-4 align-middle">
-			<div class="font-bold">{content.title}</div>
+		<div class="absolute top-0 left-0 w-full h-0 -z-10">
+			<svg class="" width={width + 2} height={height} role="none" xmlns="http://www.w3.org/2000/svg">
+				<path
+					style="filter: drop-shadow(0 4px 0 {ColorPalette[content.color].border});"
+					fill={ColorPalette[content.color].bg}
+					stroke={ColorPalette[content.color].border}
+					stroke-width="2"
+					d="M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L {width - 4} 2 Q {width} 2 {width} 4 L {width} {height - 18} Q {width} {height - 14} {width - 4} {height - 14} L 40 {height - 14} L 40 {height - 10} Q 40 {height - 8} 36 {height - 8} L 20 {height - 8} Q 16 {height - 8} 16 {height - 10} L 16 {height - 14} L 4 {height - 14} Q 2 {height - 14} 2 {height - 18} L 2 4 Q 2 2 4 2 Z"
+				></path>
+			</svg>
+		</div>
+		<div class="w-full h-full flex flex-row items-center justify-center gap-4 align-middle">
+			<div class="font-bold whitespace-nowrap">{content.title}</div>
 			<div class="flex flex-row gap-2 align-middle">
 				{#each content.contents as item}
 					{#if item === 'space'}
 						<div class="h-5 w-[1px] bg-blue-950"></div>
 					{:else}
 						<div class="flex flex-row items-center justify-center gap-1.5">
-							<div>{item.text}</div>
+							<div class="whitespace-nowrap">{item.text}</div>
 							<input
 								type="text"
-								style="background-color: {ColorPalette[content.color].text}; border-color: {ColorPalette[content.color].border}; width: calc({Math.max(2, item.value.length)}ch + 0.5rem)"
-								class="h-6 min-w-[2ch] rounded-full border p-0 text-sm text-blue-950 flex text-center items-center align-middle focus:outline-none"
+								style="background-color: {ColorPalette[content.color]
+									.text}; border-color: {ColorPalette[content.color].border}; width: calc({Math.max(
+									2,
+									item.value.length
+								)}ch + 0.5rem)"
+								class="flex h-6 min-w-[2ch] items-center rounded-full border p-0 text-center align-middle text-sm text-blue-950 focus:outline-none"
 								bind:value={item.value}
 								bind:this={field}
 								on:input={() => {
@@ -231,18 +257,3 @@
 		</div>
 	</div>
 </div>
-
-<style>
-    .clip-path {
-        clip-path: polygon(
-                0 0,
-                1rem 0,
-                1rem 0.25rem,
-                calc(1rem + 1.25rem) 0.25rem,
-                calc(1rem + 1.25rem) 0,
-                100% 0,
-                100% calc(100% + 0.5rem),
-                0 calc(100% + 0.5rem)
-        );
-    }
-</style>
