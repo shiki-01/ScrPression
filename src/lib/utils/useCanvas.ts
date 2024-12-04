@@ -29,17 +29,22 @@ export const useCanvas = (node) => {
 
 		if (
 			newTranslateX <= 0 &&
-			newTranslateX >= -(rect.width - parentRect.width) &&
+			newTranslateX >= -(rect.width - parentRect.width)
+		) {
+			translateX = newTranslateX;
+			startX = event.clientX;
+		}
+
+		if (
 			newTranslateY <= 0 &&
 			newTranslateY >= -(rect.height - parentRect.height)
 		) {
-			translateX = newTranslateX;
 			translateY = newTranslateY;
-			node.style.transform = `translate(${translateX}px, ${translateY}px)`;
-			startX = event.clientX;
 			startY = event.clientY;
-			canvasPosition.update(() => ({ x: translateX, y: translateY }));
 		}
+
+		node.style.transform = `translate(${translateX}px, ${translateY}px)`;
+		canvasPosition.update(() => ({ x: translateX, y: translateY }));
 	}
 
 	const onMouseUp = () => {
