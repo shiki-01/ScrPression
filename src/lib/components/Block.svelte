@@ -42,19 +42,30 @@
 		);
 	};
 
+	let timeout: boolean = false;
+
 	const onDrag = (e: { offsetX: number; offsetY: number }) => {
 		if (!input || !output || !$blockspace) return;
 
 		workspace.update((ws) => {
 			const block = ws.blocks.get(content.id);
 			if (block) {
+				if (block.parentId) {
+					//　魔法のことば。消したら動かない。多分。
+					const parentBlock = ws.blocks.get(block.parentId);
+					if (parentBlock) {
+						parentBlock.children = '';
+						ws.blocks.set(parentBlock.id, parentBlock);
+					}
+					block.parentId = '';
+				}
+
 				block.position.x = e.offsetX;
 				block.position.y = e.offsetY;
 				ws.blocks.set(content.id, block);
 
 				// 子ブロックの位置を更新
 				let currentBlock = block;
-
 				while (currentBlock.children) {
 					const childBlock = ws.blocks.get(currentBlock.children);
 					if (!childBlock) break;
@@ -64,7 +75,6 @@
 						y: currentBlock.position.y + offset
 					};
 					ws.blocks.set(childBlock.id, childBlock);
-
 					currentBlock = childBlock;
 				}
 			}
@@ -72,6 +82,29 @@
 		});
 
 		handleConnections();
+	};
+
+	const onDragStart = () => {
+		workspace.update((ws) => {
+			const block = ws.blocks.get(content.id);
+			if (block) {
+				// 親ブロックとの接続を解除
+				if (block.parentId) {
+					timeout = true;
+					const parentBlock = ws.blocks.get(block.parentId);
+					if (parentBlock) {
+						parentBlock.children = '';
+						ws.blocks.set(parentBlock.id, parentBlock);
+					}
+					block.parentId = '';
+				}
+			}
+			return ws;
+		});
+	};
+
+	const onDragEnd = () => {
+		timeout = false;
 	};
 
 	const findRootBlock = (
@@ -123,9 +156,8 @@
 		const sourceBlock = ws.blocks.get(sourceId);
 		const targetBlock = ws.blocks.get(targetId);
 
-		if (!sourceBlock || !targetBlock) return false;
+		if (!sourceBlock || !targetBlock || timeout) return false;
 
-		// 既に子を持っている場合は新しい接続を受け付けない
 		if (sourceBlock.children) {
 			return false;
 		}
@@ -143,11 +175,28 @@
 		sourceBlock.children = targetId;
 		targetBlock.parentId = sourceId;
 
-		// 位置を更新
+		// 接続時に位置を更新
 		targetBlock.position = {
 			x: sourceBlock.position.x,
 			y: sourceBlock.position.y + offset
 		};
+
+		// 子ブロックの位置も再帰的に更新
+		let currentBlock = targetBlock;
+		let currentOffset = offset;
+
+		while (currentBlock.children) {
+			const childBlock = ws.blocks.get(currentBlock.children);
+			if (!childBlock) break;
+
+			currentOffset += offset;
+			childBlock.position = {
+				x: sourceBlock.position.x,
+				y: sourceBlock.position.y + currentOffset
+			};
+			ws.blocks.set(childBlock.id, childBlock);
+			currentBlock = childBlock;
+		}
 
 		ws.blocks.set(sourceId, sourceBlock);
 		ws.blocks.set(targetId, targetBlock);
@@ -180,21 +229,23 @@
 <div
 	bind:this={block}
 	class:absolute={!strict}
-	class="cancel -translate-x-1/2 -translate-y-1/2 top-1/2 left-1/2"
+	class="cancel left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
 	role="button"
 	tabindex="0"
 	use:draggable={{
 		bounds: 'parent',
 		disabled: strict,
 		position: strict ? { x: 0, y: 0 } : content.position,
-		onDrag
+		onDrag,
+		onDragStart,
+		onDragEnd
 	}}
 	on:click={() => {
 		if (strict) addBlock();
 	}}
 >
 	<div
-		class="relative flex h-12 w-fit cursor-pointer rounded-md items-center justify-center align-middle px-2.5 pb-1"
+		class="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
 		data-id={content.id}
 	>
 		{#if content.connections.input}
@@ -202,7 +253,7 @@
 				bind:this={input}
 				data-id={content.id}
 				class:input={!strict}
-				class="absolute left-3 top-0 h-1.5 w-6 rounded-b border-2 border-white/0"
+				class="absolute left-4 top-0 h-2 w-6"
 			></span>
 		{/if}
 		{#if content.connections.output}
@@ -210,26 +261,30 @@
 				bind:this={output}
 				data-id={content.id}
 				class:output={!strict}
-				class="absolute -bottom-2 left-3 h-2 w-6 rounded-b border-2 border-b-4 border-t-0 border-white/0"
+				class="absolute bottom-0 left-4 h-2 w-6"
 			>
 			</span>
 		{/if}
-		<div class="absolute top-0 left-0 w-full h-0 -z-10">
-			<svg class="" width={width + 2} height={height} role="none" xmlns="http://www.w3.org/2000/svg">
+		<div class="absolute left-0 top-0 -z-10 h-0 w-full">
+			<svg class="" width={width + 2} {height} role="none" xmlns="http://www.w3.org/2000/svg">
 				<path
 					style="filter: drop-shadow(0 4px 0 {ColorPalette[content.color].border});"
 					fill={ColorPalette[content.color].bg}
 					stroke={ColorPalette[content.color].border}
 					stroke-width="2"
-					d="M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L {width - 4} 2 Q {width} 2 {width} 4 L {width} {height - 18} Q {width} {height - 14} {width - 4} {height - 14} L 40 {height - 14} L 40 {height - 10} Q 40 {height - 8} 36 {height - 8} L 20 {height - 8} Q 16 {height - 8} 16 {height - 10} L 16 {height - 14} L 4 {height - 14} Q 2 {height - 14} 2 {height - 18} L 2 4 Q 2 2 4 2 Z"
+					d="M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L {width -
+						4} 2 Q {width} 2 {width} 4 L {width} {height - 18} Q {width} {height - 14} {width -
+						4} {height - 14} L 40 {height - 14} L 40 {height - 10} Q 40 {height - 8} 36 {height -
+						8} L 20 {height - 8} Q 16 {height - 8} 16 {height - 10} L 16 {height - 14} L 4 {height -
+						14} Q 2 {height - 14} 2 {height - 18} L 2 4 Q 2 2 4 2 Z"
 				></path>
 			</svg>
 		</div>
 		<div
 			style="color: {ColorPalette[content.color].text};"
-			class="w-full h-full flex flex-row items-center justify-center gap-4 align-middle"
+			class="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
 		>
-			<div class="font-bold whitespace-nowrap">{content.title}</div>
+			<div class="whitespace-nowrap font-bold">{content.title}</div>
 			<div class="flex flex-row gap-2 align-middle">
 				{#each content.contents as item}
 					{#if item === 'space'}

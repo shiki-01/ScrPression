@@ -135,13 +135,14 @@
 
 	const scroll = (position: {x: number, y: number}) => {
 		if (scrollX && scrollY && main) {
-			const xBarWidth = width * $bgscale / (main.clientWidth - 250);
-			const yBarHeight = height * $bgscale / (main.clientHeight - 250);
+			const clientWidth = main.clientWidth - 250 - 16 - 16 - 16;
+			const clientHeight = main.clientHeight - 250 - 50 - 16 - 16 - 16;
 
-			scrollX.style.width = `${main.clientWidth / xBarWidth}px`;
-			scrollY.style.height = `${main.clientHeight / yBarHeight}px`;
+			const xBarWidth = width * $bgscale / clientWidth;
+			const yBarHeight = height * $bgscale / clientHeight;
 
-			console.log(xBarWidth, yBarHeight);
+			scrollX.style.width = `${clientWidth / xBarWidth}px`;
+			scrollY.style.height = `${clientHeight / yBarHeight}px`;
 
 			const xBarPosX = position.x / xBarWidth;
 			const yBarPosY = position.y / yBarHeight;
@@ -158,10 +159,40 @@
 		updateCanvasSize($workspace);
 		scroll($canvasPosition)
 	});
+
+	const adjustPosition = () => {
+		if (!main || !main.parentElement) return;
+        const rect = main.getBoundingClientRect();
+        const parentRect = main.parentElement.getBoundingClientRect();
+
+        if (rect.width * $bgscale < parentRect.width) {
+            canvasPosition.update((pos) => ({ ...pos, x: 0 }));
+        }
+        if (rect.height * $bgscale < parentRect.height) {
+            canvasPosition.update((pos) => ({ ...pos, y: 0 }));
+        }
+    };
 </script>
 
-<main bind:this={main} class="relative grid h-[100svh] w-[100svw] grid-cols-[250px_1fr] grid-rows-1 overflow-hidden">
-	<div
+<main bind:this={main} class="relative grid h-[100svh] w-[100svw] grid-rows-[50px_1fr] overflow-hidden">
+	<div class="w-full h-full flex flex-row justify-between bg-slate-500 px-5">
+		<div class="w-[100px] h-full">
+			<img src="https://placehold.jp/200x200" alt="logo" class="w-full h-full object-cover" />
+		</div>
+		<div class="flex flex-row gap-4 h-full justify-center items-center text-slate-50">
+			<button class="flex w-full h-full justify-center items-center">
+				<Icon icon="ic:round-add" class="h-6 w-6" />
+			</button>
+			<button class="flex w-full h-full justify-center items-center">
+				<Icon icon="ic:round-share" class="h-6 w-6" />
+			</button>
+			<button class="flex w-full h-full justify-center items-center">
+				<Icon icon="ic:round-settings" class="h-6 w-6" />
+			</button>
+		</div>
+	</div>
+	<div class="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden">
+		<div
 		class="relative flex h-full w-full flex-col items-start gap-5 overflow-auto bg-slate-200 p-5"
 	>
 		<Block strict={true} {content} />
@@ -208,6 +239,7 @@
 						$bgscale += 0.1;
 						if ($bgscale > 2) $bgscale = 2;
 						if ($bgscale === 0) $bgscale = 0.1;
+						adjustPosition();
 					}}
 			        class="flex items-center justify-center rounded-full border-2 border-slate-400 text-slate-400 bg-slate-50"
 			    >
@@ -218,6 +250,7 @@
 						$bgscale -= 0.1;
 						if ($bgscale < 0.5) $bgscale = 0.5;
 						if ($bgscale === 0) $bgscale = -0.1;
+						adjustPosition();
 					}}
 				    class="flex justify-center items-center rounded-full border-2 border-slate-400 text-slate-400 bg-slate-50"
 				>
@@ -242,4 +275,5 @@
 		Output
 		<Icon icon="ic:twotone-output" class="h-6 w-6" />
 	</button>
+	</div>
 </main>
