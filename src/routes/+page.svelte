@@ -152,7 +152,7 @@
 	}
 
 	$: scroll($canvasPosition);
-	$: updateCanvasSize($workspace)
+	//$: updateCanvasSize($workspace)
 
 	onMount(() => {
 		updateCanvasSize($workspace);

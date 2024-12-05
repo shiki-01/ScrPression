@@ -1,6 +1,6 @@
 import { canvasPosition, bgscale } from '$lib/stores';
 
-export const useCanvas = (node) => {
+export const useCanvas = (node: HTMLElement) => {
 	let isDragging: boolean = false;
 	let startX: number = 0;
 	let startY: number = 0;
@@ -31,6 +31,7 @@ export const useCanvas = (node) => {
 		const newTranslateY = translateY + deltaY / scale;
 
 		const rect = node.getBoundingClientRect();
+		if (!node.parentElement) return;
 		const parentRect = node.parentElement.getBoundingClientRect();
 
 		if (

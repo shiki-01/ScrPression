@@ -250,6 +250,7 @@
 								on:input={() => {
 									if (field) {
 										field.style.width = `${Math.max(2, field.value.length)}ch`;
+										width = block.clientWidth;
 									}
 								}}
 							/>
