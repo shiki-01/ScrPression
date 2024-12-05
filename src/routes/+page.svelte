@@ -1,8 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import Block from '$lib/components/Block.svelte';
-	import type { Block as TBlock } from '$lib/types';
-	import { workspace, blockspace, canvasPosition } from '$lib/stores';
+	import type { Block as TBlock, WorkspaceState } from '$lib/types';
+	import { workspace, blockspace, canvasPosition, bgscale } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 
@@ -116,11 +116,12 @@
 	let width = 2000;
 	let height = 2000;
 
+	let main: HTMLElement;
 	let scrollX: HTMLElement;
 	let scrollY: HTMLElement;
 
-	function updateCanvasSize() {
-		const blocks = Array.from($workspace.blocks.values());
+	function updateCanvasSize(workspace: WorkspaceState) {
+		const blocks = Array.from(workspace.blocks.values());
 		if (blocks.length === 0) return;
 
 		const xs = blocks.map((block) => Math.abs(block.position.x));
@@ -133,27 +134,33 @@
 	}
 
 	const scroll = (position: {x: number, y: number}) => {
-		if (scrollX && scrollY && typeof window !== 'undefined') {
-			const xBarWidth = width / (window.innerWidth - 250);
-			const yBarHeight = height / (window.innerHeight - 250);
+		if (scrollX && scrollY && main) {
+			const xBarWidth = width * $bgscale / (main.clientWidth - 250);
+			const yBarHeight = height * $bgscale / (main.clientHeight - 250);
 
-			scrollX.style.width = `${window.innerWidth / xBarWidth}px`;
-			scrollY.style.height = `${window.innerHeight / yBarHeight}px`;
+			scrollX.style.width = `${main.clientWidth / xBarWidth}px`;
+			scrollY.style.height = `${main.clientHeight / yBarHeight}px`;
 
 			console.log(xBarWidth, yBarHeight);
 
 			const xBarPosX = position.x / xBarWidth;
 			const yBarPosY = position.y / yBarHeight;
 
-			scrollX.style.transform = `translateX(${xBarPosX}px)`;
-			scrollY.style.transform = `translateY(${yBarPosY}px)`;
+			scrollX.style.transform = `translateX(calc(${-xBarPosX}px))`;
+			scrollY.style.transform = `translateY(calc(${-yBarPosY}px))`;
 		}
 	}
 
-	onMount(updateCanvasSize);
+	$: scroll($canvasPosition);
+	$: updateCanvasSize($workspace)
+
+	onMount(() => {
+		updateCanvasSize($workspace);
+		scroll($canvasPosition)
+	});
 </script>
 
-<main class="relative grid h-[100svh] w-[100svw] grid-cols-[250px_1fr] grid-rows-1 overflow-hidden">
+<main bind:this={main} class="relative grid h-[100svh] w-[100svw] grid-cols-[250px_1fr] grid-rows-1 overflow-hidden">
 	<div
 		class="relative flex h-full w-full flex-col items-start gap-5 overflow-auto bg-slate-200 p-5"
 	>
@@ -173,6 +180,7 @@
 					height: {height}px;
 					background-size: 20px 20px;
 					background-image: radial-gradient(#888 10%, transparent 10%);
+					scale: {$bgscale};
 					will-change: transform;
 				"
 			>
@@ -180,11 +188,41 @@
 					<Block content={block} />
 				{/each}
 			</div>
-			<div class="absolute bottom-0 left-0 px-2 pb-2 w-full h-4">
+			<div class="absolute bottom-0 left-0 pl-2 pr-4 pb-2 w-full h-3">
 				<div
 					bind:this={scrollX}
+					style="width: 100%;"
 					class="h-full bg-slate-400 rounded-full"
 				></div>
+			</div>
+			<div class="absolute top-0 right-0 pt-2 pb-4 pr-2 w-3 h-full">
+				<div
+				    bind:this={scrollY}
+					style="height: 100%;"
+					class="w-full bg-slate-400 rounded-full"
+				></div>
+			</div>
+			<div class="absolute bottom-6 right-6 flex flex-col gap-2">
+				<button
+				    on:click={() =>  {
+						$bgscale += 0.1;
+						if ($bgscale > 2) $bgscale = 2;
+						if ($bgscale === 0) $bgscale = 0.1;
+					}}
+			        class="flex items-center justify-center rounded-full border-2 border-slate-400 text-slate-400 bg-slate-50"
+			    >
+				    <Icon icon="ic:round-plus" class="h-6 w-6" />
+			    </button>
+				<button
+				    on:click={() => {
+						$bgscale -= 0.1;
+						if ($bgscale < 0.5) $bgscale = 0.5;
+						if ($bgscale === 0) $bgscale = -0.1;
+					}}
+				    class="flex justify-center items-center rounded-full border-2 border-slate-400 text-slate-400 bg-slate-50"
+				>
+					<Icon icon="ic:round-minus" class="h-6 w-6" />
+				</button>
 			</div>
 		</div>
 		<div class="h-full w-full overflow-auto bg-slate-800 p-5">

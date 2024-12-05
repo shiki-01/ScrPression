@@ -1,4 +1,4 @@
-import { canvasPosition } from '$lib/stores';
+import { canvasPosition, bgscale } from '$lib/stores';
 
 export const useCanvas = (node) => {
 	let isDragging: boolean = false;
@@ -21,15 +21,21 @@ export const useCanvas = (node) => {
 		const deltaX = event.clientX - startX;
 		const deltaY = event.clientY - startY;
 
-		const newTranslateX = translateX + deltaX;
-		const newTranslateY = translateY + deltaY;
+		let scale = 1;
+
+		bgscale.subscribe((v) => {
+			scale = v;
+		})
+
+		const newTranslateX = translateX + deltaX / scale;
+		const newTranslateY = translateY + deltaY / scale;
 
 		const rect = node.getBoundingClientRect();
 		const parentRect = node.parentElement.getBoundingClientRect();
 
 		if (
 			newTranslateX <= 0 &&
-			newTranslateX >= -(rect.width - parentRect.width)
+			newTranslateX >= -(rect.width / scale - parentRect.width)
 		) {
 			translateX = newTranslateX;
 			startX = event.clientX;
@@ -37,7 +43,7 @@ export const useCanvas = (node) => {
 
 		if (
 			newTranslateY <= 0 &&
-			newTranslateY >= -(rect.height - parentRect.height)
+			newTranslateY >= -(rect.height / scale - parentRect.height)
 		) {
 			translateY = newTranslateY;
 			startY = event.clientY;
