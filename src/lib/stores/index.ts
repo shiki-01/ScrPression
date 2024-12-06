@@ -12,4 +12,6 @@ const bgscale: Writable<number> = writable(1);
 
 const canvasPosition: Writable<{ x: number, y: number }> = writable({ x: 0, y: 0 });
 
-export { workspace, blockspace, bgscale, canvasPosition };
+const output: Writable<string> = writable('');
+
+export { workspace, blockspace, bgscale, canvasPosition, output };

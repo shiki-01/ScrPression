@@ -13,7 +13,7 @@ interface BlockContent {
 
 interface Block {
   id: string;
-  type: 'normal' | 'container' | 'value';
+  type: 'normal' | 'container' | 'value' | 'flag';
   color: 'blue' | 'red' | 'green' | 'yellow' | 'orange' | 'cyan';
   title: string;
   output: string;

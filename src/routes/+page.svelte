@@ -2,9 +2,11 @@
 	import Icon from '@iconify/svelte';
 	import Block from '$lib/components/Block.svelte';
 	import Value from '$lib/components/Value.svelte';
+	import Flag from '$lib/components/Flag.svelte';
 	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { workspace, blockspace, canvasPosition, bgscale } from '$lib/stores';
+	import { workspace, blockspace, canvasPosition, bgscale, output } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
+	import { formatOutput } from '$lib/utils/block';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 
@@ -41,7 +43,7 @@
 		children: '',
 		parentId: '',
 		depth: 0,
-		zIndex: 0,
+		zIndex: 0
 	};
 
 	const content2: TBlock = {
@@ -84,7 +86,7 @@
 		children: '',
 		parentId: '',
 		depth: 0,
-		zIndex: 0,
+		zIndex: 0
 	};
 
 	const content3: TBlock = {
@@ -105,7 +107,7 @@
 		children: '',
 		parentId: '',
 		depth: 0,
-		zIndex: 0,
+		zIndex: 0
 	};
 
 	const content4: TBlock = {
@@ -141,18 +143,29 @@
 		children: '',
 		parentId: '',
 		depth: 0,
-		zIndex: 0,
+		zIndex: 0
 	};
 
-	function formatOutput(block: TBlock) {
-		let output = block.output;
-		block.contents.forEach((content) => {
-			if (content === 'space') return;
-			const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
-			output = output.replace(regex, content.value);
-		});
-		return output;
-	}
+	const content5: TBlock = {
+		id: '',
+		title: 'Start',
+		output: '',
+		type: 'normal',
+		color: 'yellow',
+		contents: [],
+		connections: {
+			input: false,
+			output: true
+		},
+		position: {
+			x: 10,
+			y: 10
+		},
+		children: '',
+		parentId: '',
+		depth: 0,
+		zIndex: 0
+	};
 
 	let width = 2000;
 	let height = 2000;
@@ -161,7 +174,7 @@
 	let scrollX: HTMLElement;
 	let scrollY: HTMLElement;
 
-	let output: HTMLElement;
+	let outputElement: HTMLElement;
 
 	function updateCanvasSize(workspace: WorkspaceState) {
 		const blocks = Array.from(workspace.blocks.values());
@@ -220,16 +233,16 @@
 </script>
 
 {#if isAdd}
-    <div
-	    transition:fly={{ y: -10, duration: 200 }}
-	    class="fixed z-10 top-[40px] right-20 px-4 py-2 flex flex-col gap-2 bg-slate-200 rounded-lg"
+	<div
+		transition:fly={{ y: -10, duration: 200 }}
+		class="fixed right-20 top-[40px] z-10 flex flex-col gap-2 rounded-lg bg-slate-200 px-4 py-2"
 	>
-		<button class="flex flex-row gap-2 items-center justify-bewteen">
+		<button class="justify-bewteen flex flex-row items-center gap-2">
 			Project
 			<Icon icon="ic:round-insert-drive-file" class="h-6 w-6" />
 		</button>
-		<span class="w-full h-[1px] bg-slate-800"></span>
-		<button class="flex flex-row gap-2 items-center justify-between">
+		<span class="h-[1px] w-full bg-slate-800"></span>
+		<button class="flex flex-row items-center justify-between gap-2">
 			Block
 			<Icon icon="ic:round-code" class="h-6 w-6" />
 		</button>
@@ -244,8 +257,11 @@
 		<div class="h-full w-[100px]">
 			<img src="https://placehold.jp/200x200" alt="logo" class="h-full w-full object-cover" />
 		</div>
-		<div class="flex touch-auto h-full flex-row items-center justify-center gap-4 text-slate-50">
-			<button on:click={() => isAdd = !isAdd} class="flex h-full w-full items-center justify-center">
+		<div class="flex h-full touch-auto flex-row items-center justify-center gap-4 text-slate-50">
+			<button
+				on:click={() => (isAdd = !isAdd)}
+				class="flex h-full w-full items-center justify-center"
+			>
 				<Icon icon="ic:round-add-box" class="h-6 w-6" />
 			</button>
 			<button class="flex h-full w-full items-center justify-center">
@@ -269,6 +285,7 @@
 			<Block strict={true} content={content2} />
 			<Block strict={true} content={content3} />
 			<Value strict={true} content={content4} />
+			<Flag strict={true} content={content5} />
 		</div>
 		<div class="grid" style="grid-template-rows: 1fr 250px;">
 			<div class="relative h-full w-full overflow-hidden">
@@ -278,19 +295,21 @@
 					use:useCanvas
 					class="relative cursor-grab bg-slate-50 active:cursor-grabbing"
 					style="
-					width: {width}px;
-					height: {height}px;
-					background-size: 20px 20px;
-					background-image: radial-gradient(#888 10%, transparent 10%);
-					scale: {$bgscale};
-					will-change: transform;
-				"
+						width: {width}px;
+						height: {height}px;
+						background-size: 20px 20px;
+						background-image: radial-gradient(#888 10%, transparent 10%);
+						scale: {$bgscale};
+						will-change: transform;
+					"
 				>
 					{#each $workspace.blocks as [_, block]}
 						{#if block.color === 'blue' || block.color === 'red' || block.color === 'orange'}
 							<Block content={block} />
 						{:else if block.color === 'green'}
 							<Value content={block} />
+						{:else if block.color === 'yellow'}
+							<Flag content={block} />
 						{/if}
 					{/each}
 				</div>
@@ -333,30 +352,18 @@
 					</button>
 				</div>
 			</div>
-			<div class="h-full w-full overflow-auto bg-slate-800 p-5">
-				{#each $workspace.blocks as [_, block]}
-					<div class="mb-2 text-white">
-						<strong>Block ID:</strong>
-						{block.id}<br />
-						<strong>Output:</strong>
-						{formatOutput(block)}
-					</div>
+			<div class="h-full w-full overflow-auto bg-slate-800 text-slate-50 p-5">
+				{#each $output.split('\n') as line}
+					<p>{line}</p>
 				{/each}
 			</div>
 		</div>
 		<button
-			bind:this={output}
+			bind:this={outputElement}
 			class="absolute bottom-8 right-8 flex flex-row items-center justify-center gap-1 rounded-full bg-blue-600 px-4 py-2 text-white"
 			on:click={() => {
-				//　すべてのアウトプットをつなげてクリップボードにコピー
-				const blocks = Array.from($workspace.blocks.values());
-				const outputText = blocks.map((block) => formatOutput(block)).join('\n');
-				navigator.clipboard.writeText(outputText);
-				if (output) {
-					output.classList.add('bg-green-600');
-					setTimeout(() => {
-						output.classList.remove('bg-green-600');
-					}, 1000);
+				if (typeof window !== 'undefined') {
+					window.navigator.clipboard.writeText($output);
 				}
 			}}
 		>

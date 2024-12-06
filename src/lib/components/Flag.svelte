@@ -1,9 +1,17 @@
 <script lang="ts">
+	import Icon from '@iconify/svelte';
 	import { draggable } from '@neodrag/svelte';
 	import type { Block } from '$lib/types';
 	import { workspace } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
-    import { addBlock, updateZIndex, onDrag, onDragEnd, onDragStart } from '$lib/utils/block';
+	import {
+		addBlock,
+		updateZIndex,
+		onDrag,
+		onDragEnd,
+		onDragStart,
+		formatOutput
+	} from '$lib/utils/block';
 
 	export let content: Block;
 	export let strict: boolean = false;
@@ -17,9 +25,21 @@
 	let width: number = 1000;
 	let height: number = 60;
 
-
-	$: width = block ? block.clientWidth : 1000;
+	$: width = block ? block.clientWidth + 6 : 1000;
 	$: height = block ? block.clientHeight + 6 : 60;
+
+	const searchAllChildren = (id: string): Block[] => {
+		const children: Block[] = [];
+
+		$workspace.blocks.forEach((block) => {
+			if (block.parentId === id) {
+				children.push(block);
+				children.push(...searchAllChildren(block.id));
+			}
+		});
+
+		return children;
+	};
 </script>
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
@@ -50,14 +70,6 @@
 		class="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
 		data-id={content.id}
 	>
-		{#if content.connections.input}
-			<span
-				bind:this={input}
-				data-id={content.id}
-				class:input={!strict}
-				class="absolute left-4 top-0 h-2 w-6"
-			></span>
-		{/if}
 		{#if content.connections.output}
 			<span
 				bind:this={output}
@@ -74,11 +86,11 @@
 					fill={ColorPalette[content.color].bg}
 					stroke={ColorPalette[content.color].border}
 					stroke-width="2"
-					d="M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L {width -
-						4} 2 Q {width} 2 {width} 4 L {width} {height - 18} Q {width} {height - 14} {width -
-						4} {height - 14} L 40 {height - 14} L 40 {height - 10} Q 40 {height - 8} 36 {height -
-						8} L 20 {height - 8} Q 16 {height - 8} 16 {height - 10} L 16 {height - 14} L 4 {height -
-						14} Q 2 {height - 14} 2 {height - 18} L 2 4 Q 2 2 4 2 Z"
+					d="M 14 2 L 42 2 L {width - 14} 2 Q {width} 2 {width} 14 L {width} {height -
+						18} Q {width} {height - 14} {width - 4} {height - 14} L 40 {height - 14} L 40 {height -
+						10} Q 40 {height - 8} 36 {height - 8} L 20 {height - 8} Q 16 {height - 8} 16 {height -
+						10} L 16 {height - 14} L 4 {height - 14} Q 2 {height - 14} 2 {height -
+						18} L 2 14 Q 2 2 14 2 Z"
 				></path>
 			</svg>
 		</div>
@@ -115,6 +127,16 @@
 					{/if}
 				{/each}
 			</div>
+			<button
+				on:click={() => {
+					const children = searchAllChildren(content.id);
+					formatOutput(children);
+				}}
+				class="flex items-center justify-center rounded-full border-2 p-1"
+				style={`border-color: ${ColorPalette[content.color].border}; background-color: ${ColorPalette[content.color].text};`}
+			>
+				<Icon icon="ic:round-flag" class="h-5 w-5 text-green-400" />
+			</button>
 		</div>
 	</div>
 </div>
