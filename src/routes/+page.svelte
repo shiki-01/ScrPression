@@ -238,9 +238,6 @@
 
 <main
 	bind:this={main}
-	on:pointerdown={() => {
-		isAdd = false;
-	}}
 	class="relative grid h-[100svh] w-[100svw] grid-rows-[50px_1fr] overflow-hidden"
 >
 	<div class="flex h-full w-full flex-row justify-between bg-slate-500 px-5">
@@ -259,7 +256,12 @@
 			</button>
 		</div>
 	</div>
-	<div class="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden">
+	<div
+		on:pointerdown={() => {
+			isAdd = false;
+		}}
+		class="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden"
+	>
 		<div
 			class="relative flex h-full w-full flex-col items-start gap-5 overflow-auto bg-slate-200 p-5"
 		>
