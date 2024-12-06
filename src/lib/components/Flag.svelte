@@ -16,8 +16,6 @@
 	export let content: Block;
 	export let strict: boolean = false;
 
-	let input: HTMLElement;
-	let output: HTMLElement;
 	let block: HTMLElement;
 
 	let field: HTMLInputElement;
@@ -72,7 +70,6 @@
 	>
 		{#if content.connections.output}
 			<span
-				bind:this={output}
 				data-id={content.id}
 				class:output={!strict}
 				class="absolute bottom-0 left-4 h-2 w-6"
