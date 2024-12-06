@@ -6,6 +6,7 @@
 	import { workspace, blockspace, canvasPosition, bgscale } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
 	import { onMount } from 'svelte';
+	import { fly } from 'svelte/transition';
 
 	const content: TBlock = {
 		id: '',
@@ -214,19 +215,41 @@
 			canvasPosition.update((pos) => ({ ...pos, y: 0 }));
 		}
 	};
+
+	let isAdd: boolean = false;
 </script>
+
+{#if isAdd}
+    <div
+	    transition:fly={{ y: -10, duration: 200 }}
+	    class="fixed z-10 top-[40px] right-20 px-4 py-2 flex flex-col gap-2 bg-slate-200 rounded-lg"
+	>
+		<button class="flex flex-row gap-2 items-center justify-bewteen">
+			Project
+			<Icon icon="ic:round-insert-drive-file" class="h-6 w-6" />
+		</button>
+		<span class="w-full h-[1px] bg-slate-800"></span>
+		<button class="flex flex-row gap-2 items-center justify-between">
+			Block
+			<Icon icon="ic:round-code" class="h-6 w-6" />
+		</button>
+	</div>
+{/if}
 
 <main
 	bind:this={main}
+	on:pointerdown={() => {
+		isAdd = false;
+	}}
 	class="relative grid h-[100svh] w-[100svw] grid-rows-[50px_1fr] overflow-hidden"
 >
 	<div class="flex h-full w-full flex-row justify-between bg-slate-500 px-5">
 		<div class="h-full w-[100px]">
 			<img src="https://placehold.jp/200x200" alt="logo" class="h-full w-full object-cover" />
 		</div>
-		<div class="flex h-full flex-row items-center justify-center gap-4 text-slate-50">
-			<button class="flex h-full w-full items-center justify-center">
-				<Icon icon="ic:round-add" class="h-6 w-6" />
+		<div class="flex touch-auto h-full flex-row items-center justify-center gap-4 text-slate-50">
+			<button on:click={() => isAdd = !isAdd} class="flex h-full w-full items-center justify-center">
+				<Icon icon="ic:round-add-box" class="h-6 w-6" />
 			</button>
 			<button class="flex h-full w-full items-center justify-center">
 				<Icon icon="ic:round-share" class="h-6 w-6" />
