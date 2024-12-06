@@ -39,7 +39,8 @@
 		},
 		children: '',
 		parentId: '',
-		depth: 0
+		depth: 0,
+		zIndex: 0,
 	};
 
 	const content2: TBlock = {
@@ -81,7 +82,8 @@
 		},
 		children: '',
 		parentId: '',
-		depth: 0
+		depth: 0,
+		zIndex: 0,
 	};
 
 	const content3: TBlock = {
@@ -101,7 +103,8 @@
 		},
 		children: '',
 		parentId: '',
-		depth: 0
+		depth: 0,
+		zIndex: 0,
 	};
 
 	const content4: TBlock = {
@@ -136,7 +139,8 @@
 		},
 		children: '',
 		parentId: '',
-		depth: 0
+		depth: 0,
+		zIndex: 0,
 	};
 
 	function formatOutput(block: TBlock) {

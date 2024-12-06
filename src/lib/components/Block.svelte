@@ -81,10 +81,13 @@
 			return ws;
 		});
 
+		updateZIndex($workspace, content.id);
 		handleConnections();
 	};
 
 	const onDragStart = () => {
+		if (strict) return;
+
 		workspace.update((ws) => {
 			const block = ws.blocks.get(content.id);
 			if (block) {
@@ -106,6 +109,31 @@
 	const onDragEnd = () => {
 		timeout = false;
 	};
+
+	const updateZIndex = (ws: WorkspaceState, blockId: string) => {
+		const block = ws.blocks.get(blockId);
+		if (!block) return;
+
+		ws.blocks.forEach((b) => {
+			b.zIndex =0;
+			ws.blocks.set(b.id, b);
+		});
+
+		let zIndex = 1;
+		const setZIndex = (blockId: string) => {
+			const block = ws.blocks.get(blockId);
+			if (!block) return;
+
+			block.zIndex = zIndex++;
+			ws.blocks.set(block.id, block);
+
+			if (block.children) {
+				setZIndex(block.children);
+			}
+		}
+
+		setZIndex(blockId)
+	}
 
 	const findRootBlock = (
 		ws: WorkspaceState,
@@ -201,6 +229,8 @@
 		ws.blocks.set(sourceId, sourceBlock);
 		ws.blocks.set(targetId, targetBlock);
 
+		updateZIndex(ws, sourceId);
+
 		return true;
 	};
 
@@ -230,6 +260,7 @@
 	bind:this={block}
 	class:absolute={!strict}
 	class="cancel left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+	style="z-index: {content.zIndex};"
 	role="button"
 	tabindex="0"
 	use:draggable={{
@@ -241,7 +272,11 @@
 		onDragEnd
 	}}
 	on:click={() => {
-		if (strict) addBlock();
+		if (strict) {
+			addBlock();
+		} else {
+			updateZIndex($workspace, content.id);
+		}
 	}}
 >
 	<div

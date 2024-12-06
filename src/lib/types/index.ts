@@ -23,6 +23,7 @@ interface Block {
   children: string;
   parentId: string;
   depth: number;
+  zIndex: number;
 }
 
 interface WorkspaceState {
