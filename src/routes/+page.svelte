@@ -1,5 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
+	import ContextMenu from '$lib/components/ContextMenu.svelte';
 	import Block from '$lib/components/Block.svelte';
 	import Value from '$lib/components/Value.svelte';
 	import Flag from '$lib/components/Flag.svelte';
@@ -226,7 +227,12 @@
 		}
 	};
 
+	let isContextMenuOpen = false;
+	let isContextX = 0;
+	let isContextY = 0;
+
 	let isAdd: boolean = false;
+
 </script>
 
 {#if isAdd}
@@ -245,6 +251,8 @@
 		</button>
 	</div>
 {/if}
+
+<ContextMenu bind:isOpen={isContextMenuOpen} clientX={isContextX} clientY={isContextY} />
 
 <main
 	bind:this={main}
@@ -287,8 +295,17 @@
 		<div class="grid" style="grid-template-rows: 1fr 250px;">
 			<div class="relative h-full w-full overflow-hidden">
 				<!-- svelte-ignore a11y_no_static_element_interactions -->
-				<div
+				<button
 					bind:this={$blockspace}
+					on:click={() => {
+						isContextMenuOpen = false;
+					}}
+					on:contextmenu={(e) => {
+						e.preventDefault();
+						isContextMenuOpen = true;
+						isContextX = e.clientX;
+						isContextY = e.clientY;
+					}}
 					use:useCanvas
 					class="relative cursor-grab bg-slate-50 active:cursor-grabbing"
 					style="
@@ -309,7 +326,7 @@
 							<Flag content={block} />
 						{/if}
 					{/each}
-				</div>
+				</button>
 				<div class="trash absolute bottom-2 right-2 text-slate-400 hover:text-slate-500 transition-colors duration-300">
 					<Icon class="h-10 w-10" icon="ic:round-delete" />
 				</div>
