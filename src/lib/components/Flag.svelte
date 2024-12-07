@@ -2,16 +2,10 @@
 	import Icon from '@iconify/svelte';
 	import { draggable } from '@neodrag/svelte';
 	import type { Block } from '$lib/types';
-	import { workspace } from '$lib/stores';
+	import { output, workspace } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
-	import {
-		addBlock,
-		updateZIndex,
-		onDrag,
-		onDragEnd,
-		onDragStart,
-		formatOutput
-	} from '$lib/utils/block';
+	import { addBlock, formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
+	import { toast } from 'svelte-sonner';
 
 	export let content: Block;
 	export let strict: boolean = false;
@@ -25,6 +19,9 @@
 
 	$: width = block ? block.clientWidth + 6 : 1000;
 	$: height = block ? block.clientHeight + 6 : 60;
+
+	let clientX: number = 0;
+	let clientY: number = 0;
 
 	const searchAllChildren = (id: string): Block[] => {
 		const children: Block[] = [];
@@ -40,6 +37,11 @@
 	};
 </script>
 
+<svelte:window on:mousemove={(e) => {
+	clientX = e.clientX;
+	clientY = e.clientY;
+}} />
+
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	bind:this={block}
@@ -54,7 +56,7 @@
 		position: strict ? { x: 0, y: 0 } : content.position,
 		onDrag: (e) => onDrag(e, content),
 		onDragStart: () => onDragStart(strict, content),
-		onDragEnd: () => onDragEnd()
+		onDragEnd: () => onDragEnd({ clientX, clientY }, content)
 	}}
 	on:click={() => {
 		if (strict) {
@@ -128,6 +130,8 @@
 				on:click={() => {
 					const children = searchAllChildren(content.id);
 					formatOutput(children);
+					window.navigator.clipboard.writeText($output);
+					toast.success('Output copied to clipboard');
 				}}
 				class="flex items-center justify-center rounded-full border-2 p-1"
 				style={`border-color: ${ColorPalette[content.color].border}; background-color: ${ColorPalette[content.color].text};`}

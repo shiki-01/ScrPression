@@ -3,7 +3,7 @@
 	import type { Block } from '$lib/types';
 	import { workspace } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
-    import { addBlock, updateZIndex, onDrag, onDragEnd, onDragStart } from '$lib/utils/block';
+	import { addBlock, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
 
 	export let content: Block;
 	export let strict: boolean = false;
@@ -17,10 +17,17 @@
 	let width: number = 1000;
 	let height: number = 60;
 
-
 	$: width = block ? block.clientWidth : 1000;
 	$: height = block ? block.clientHeight + 6 : 60;
+
+	let clientX: number = 0;
+	let clientY: number = 0;
 </script>
+
+<svelte:window on:mousemove={(e) => {
+	clientX = e.clientX;
+	clientY = e.clientY;
+}} />
 
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
@@ -36,7 +43,7 @@
 		position: strict ? { x: 0, y: 0 } : content.position,
 		onDrag: (e) => onDrag(e, content),
 		onDragStart: () => onDragStart(strict, content),
-		onDragEnd: () => onDragEnd()
+		onDragEnd: (e) => onDragEnd({clientX,clientY}, content)
 	}}
 	on:click={() => {
 		if (strict) {

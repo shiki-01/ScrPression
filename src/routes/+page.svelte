@@ -4,9 +4,8 @@
 	import Value from '$lib/components/Value.svelte';
 	import Flag from '$lib/components/Flag.svelte';
 	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { workspace, blockspace, canvasPosition, bgscale, output } from '$lib/stores';
+	import { bgscale, blockspace, canvasPosition, output, workspace } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
-	import { formatOutput } from '$lib/utils/block';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 
@@ -174,8 +173,6 @@
 	let scrollX: HTMLElement;
 	let scrollY: HTMLElement;
 
-	let outputElement: HTMLElement;
-
 	function updateCanvasSize(workspace: WorkspaceState) {
 		const blocks = Array.from(workspace.blocks.values());
 		if (blocks.length === 0) return;
@@ -313,6 +310,9 @@
 						{/if}
 					{/each}
 				</div>
+				<div class="trash absolute bottom-2 right-2 text-slate-400 hover:text-slate-500 transition-colors duration-300">
+					<Icon class="h-10 w-10" icon="ic:round-delete" />
+				</div>
 				<div class="absolute bottom-0 left-0 h-3 w-full pb-2 pl-2 pr-4">
 					<div
 						bind:this={scrollX}
@@ -327,7 +327,7 @@
 						class="w-full rounded-full bg-slate-400"
 					></div>
 				</div>
-				<div class="absolute bottom-6 right-6 flex flex-col gap-2">
+				<div class="absolute top-6 right-6 flex flex-col gap-2">
 					<button
 						on:click={() => {
 							$bgscale += 0.1;
@@ -358,17 +358,5 @@
 				{/each}
 			</div>
 		</div>
-		<button
-			bind:this={outputElement}
-			class="absolute bottom-8 right-8 flex flex-row items-center justify-center gap-1 rounded-full bg-blue-600 px-4 py-2 text-white"
-			on:click={() => {
-				if (typeof window !== 'undefined') {
-					window.navigator.clipboard.writeText($output);
-				}
-			}}
-		>
-			Output
-			<Icon icon="ic:twotone-output" class="h-6 w-6" />
-		</button>
 	</div>
 </main>

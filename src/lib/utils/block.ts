@@ -1,6 +1,7 @@
-import { workspace, blockspace, output } from '$lib/stores';
+import { blockspace, output, workspace } from '$lib/stores';
 import type { Block, WorkspaceState } from '$lib/types';
 import { writable, type Writable } from 'svelte/store';
+import { toast } from 'svelte-sonner';
 
 const timeoutState: Writable<boolean> = writable(false);
 
@@ -88,11 +89,34 @@ const onDragStart = (strict: boolean, content: Block) => {
     });
 };
 
-const onDragEnd = () => {
-    timeoutState.set(false);
+const onDragEnd = (event: { clientX: number; clientY: number }, content: Block) => {
+	timeoutState.set(false);
+
+	const dropZone = document.elementsFromPoint(event.clientX, event.clientY);
+	dropZone.forEach((element) => {
+		if (element.classList.contains('trash')) {
+			removeBlock(content.id);
+			toast.success('Block removed');
+		}
+	});
 };
 
-const updateZIndex = (ws: WorkspaceState, blockId: string) => {
+const removeBlock = (blockId: string) => {
+	workspace.update((ws) => {
+		const block = ws.blocks.get(blockId);
+		if (!block) return ws;
+
+		ws.blocks.delete(block.id);
+
+		if (block.children) {
+			removeBlock(block.children);
+		}
+
+		return ws;
+	});
+};
+
+const updateZIndex = (ws: WorkspaceState, blockI;d: string) => {
     const block = ws.blocks.get(blockId);
     if (!block) return;
 
