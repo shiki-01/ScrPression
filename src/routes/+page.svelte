@@ -3,7 +3,6 @@
 	import ContextMenu from '$lib/components/ContextMenu.svelte';
 	import Block from '$lib/components/Block.svelte';
 	import Value from '$lib/components/Value.svelte';
-	import Flag from '$lib/components/Flag.svelte';
 	import type { Block as TBlock, WorkspaceState } from '$lib/types';
 	import { bgscale, blockspace, canvasPosition, output, workspace } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
@@ -150,7 +149,7 @@
 		id: '',
 		title: 'Start',
 		output: '',
-		type: 'normal',
+		type: 'flag',
 		color: 'yellow',
 		contents: [],
 		connections: {
@@ -290,7 +289,7 @@
 			<Block strict={true} content={content2} />
 			<Block strict={true} content={content3} />
 			<Value strict={true} content={content4} />
-			<Flag strict={true} content={content5} />
+			<Block content={content5} strict={true} />
 		</div>
 		<div class="grid" style="grid-template-rows: 1fr 250px;">
 			<div class="relative h-full w-full overflow-hidden">
@@ -318,12 +317,10 @@
 					"
 				>
 					{#each $workspace.blocks as [_, block]}
-						{#if block.color === 'blue' || block.color === 'red' || block.color === 'orange'}
+						{#if block.color === 'blue' || block.color === 'red' || block.color === 'orange' || block.color === 'yellow'}
 							<Block content={block} />
 						{:else if block.color === 'green'}
 							<Value content={block} />
-						{:else if block.color === 'yellow'}
-							<Flag content={block} />
 						{/if}
 					{/each}
 				</button>
