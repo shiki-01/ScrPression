@@ -28,7 +28,7 @@
 
 ### 基本的な使い方 / Main Usage
 
-### 応用 / 
+### 応用 / Application Usage
 
 ## Ae プラグイン
 
