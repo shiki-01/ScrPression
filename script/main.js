@@ -11,6 +11,11 @@ autoUpdater.logger = log;
 log.transports.file.level = 'info';
 
 const appUpdater = () => {
+	if (isDev) {
+		console.log('開発環境ではアップデートチェックをスキップします');
+		return;
+	}
+
 	autoUpdater.on('update-downloaded', (info) => {
 		dialog
 			.showMessageBox({
@@ -37,13 +42,14 @@ const createWindow = () => {
 		webPreferences: {
 			preload: path.join(__dirname, 'preload.cjs'),
 			contextIsolation: true,
-			nodeIntegration: false
-		}
+			nodeIntegration: false,
+			partition: 'persist:main'
+		},
 	})
 	win.loadURL(
 		isDev
 			? 'http://localhost:5173'
-			: `file://${path.join(__dirname, '../index.html')}`
+			: `file://${path.resolve(__dirname, '../index.html')}`
 	).then(r => console.log(r));
 }
 
