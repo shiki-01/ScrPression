@@ -2,7 +2,7 @@
 
 ## TL;DR;
 
-1. [Release]() より最新バージョンをインストール
+1. [Releases](https://github.com/shiki-01/ScrPression/releases) より最新バージョンをインストール
 2. ブロックを組む
 3. 旗ボタンを押してクリップボードにコピー
 4. Ae にて Expression を開いて貼り付ける
@@ -10,7 +10,7 @@
 
 ## インストール / Install
 
-1. [Release]() より、最新バージョンをダウンロードしてください。
+1. [Releases](https://github.com/shiki-01/ScrPression/releases) より、最新バージョンをダウンロードしてください。
 
 > [!IMPORTANT]
 > メジャーバージョンの更新以外は基本的に必要なバグ修正のため、最新バージョンのインストールを推奨します。
@@ -35,3 +35,9 @@
 開発中
 
 ## 貢献 / Contribute
+
+うぇるかむです。無理やり作ってるところ多いので、[Issues](https://github.com/shiki-01/ScrPression/issues) や [Pull Request](https://github.com/shiki-01/ScrPression/pulls) 立ててくれれば全然見ます。
+
+### バグレポート・提案 / Bug Report, Suggest
+
+イメージ像だけなら [Issues](https://github.com/shiki-01/ScrPression/issues) 、コードまで書いてくれる場合は、変更点や仕様と一緒に [Pull Request](https://github.com/shiki-01/ScrPression/pulls) してください！
