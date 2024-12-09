@@ -28,6 +28,7 @@ interface Block {
 
 interface WorkspaceState {
   blocks: Map<string, Block>;
+  title: string;
 }
 
 export type { BlockContent, Block, ConnectionPoint, WorkspaceState };

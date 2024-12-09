@@ -4,7 +4,8 @@ import type { Block, WorkspaceState } from '$lib/types';
 import { atom } from 'nanostores';
 
 const workspace: Writable<WorkspaceState> = writable({
-	blocks: new Map<string, Block>()
+	blocks: new Map<string, Block>(),
+	title: 'Untitled',
 });
 
 const blockspace: Writable<HTMLElement | null> = writable(null);
@@ -44,6 +45,10 @@ const createHistoryState = (state: Writable<WorkspaceState>): HistoryState => {
 };
 
 const restoreState = (state: HistoryState): WorkspaceState => {
+	let title = 'Untitled';
+	workspace.subscribe((ws) => {
+		title= ws.title;
+	})
 	const blocks = new Map(state.blocks);
 	blocks.forEach((block, key) => {
 		const position = state.positions.get(key);
@@ -51,7 +56,7 @@ const restoreState = (state: HistoryState): WorkspaceState => {
 			block.position = { ...position };
 		}
 	});
-	return { blocks };
+	return { blocks, title };
 };
 
 const areStatesIdentical = (state1: HistoryState, state2: HistoryState): boolean => {

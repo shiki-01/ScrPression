@@ -4,7 +4,7 @@
 	import Block from '$lib/components/Block.svelte';
 	import Value from '$lib/components/Value.svelte';
 	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { bgscale, blockspace, canvasPosition, output, workspace } from '$lib/stores';
+	import { bgscale, blockspace, canvasPosition, output, redo, undo, workspace } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
@@ -258,8 +258,30 @@
 	class="relative grid h-[100svh] w-[100svw] grid-rows-[50px_1fr] overflow-hidden"
 >
 	<div class="flex h-full w-full flex-row justify-between bg-slate-500 px-5">
-		<div class="h-full w-[100px]">
-			<img src="https://placehold.jp/200x200" alt="logo" class="h-full w-full object-cover" />
+		<div class="flex flex-row gap-4">
+			<div class="h-full w-[100px]">
+			    <img src="https://placehold.jp/200x200" alt="logo" class="h-full w-full object-cover" />
+		    </div>
+			<div class="flex flex-row gap-2 py-2">
+				<div>
+					<input
+					    type="text"
+						class="h-full w-[200px] px-2"
+						placeholder={$workspace.title}
+					/>
+				</div>
+				<div class="h-full flex flex-row gap-2 text-slate-50 items-center justify-center">
+				    <button on:click={undo}>
+					    <Icon icon="ic:round-chevron-left" class="h-6 w-6" />
+                    </button>
+				    <button on:click={redo}>
+					    <Icon icon="ic:round-chevron-right" class="h-6 w-6" />
+				    </button>
+					<button>
+						<Icon icon="ic:round-save" class="h-6 w-6" />
+					</button>
+				</div>
+			</div>
 		</div>
 		<div class="flex h-full touch-auto flex-row items-center justify-center gap-4 text-slate-50">
 			<button
