@@ -1,38 +1,37 @@
-# sv
+# ScrPression
 
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
+## TL;DR;
 
-## Creating a project
+1. [Release]() より最新バージョンをインストール
+2. ブロックを組む
+3. 旗ボタンを押してクリップボードにコピー
+4. Ae にて Expression を開いて貼り付ける
+5. 完成！！！！！！
 
-If you're seeing this, you've probably already done this step. Congrats!
+## インストール / Install
 
-```bash
-# create a new project in the current directory
-npx sv create
+1. [Release]() より、最新バージョンをダウンロードしてください。
 
-# create a new project in my-app
-npx sv create my-app
-```
+> [!IMPORTANT]
+> メジャーバージョンの更新以外は基本的に必要なバグ修正のため、最新バージョンのインストールを推奨します。
 
-## Developing
+2. ダウンロードファイルをダブルクリックで起動して、手順に従いインストールしてください。
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+> [!NOTE]
+> もし下記の画像のようになる場合は、「詳細情報」をクリックした後「インストール」をクリックするとインストールできます。
+> 環境によっては、別途 windows の一部機能へのアクセスを求められますので、必要に応じて許可をしてください
 
-```bash
-npm run dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
+3. インストール後は、スタートメニュー等から起動できます。
 
-## Building
+## 使い方 / Usage
 
-To create a production version of your app:
+### 基本的な使い方 / Main Usage
 
-```bash
-npm run build
-```
+### 応用 / 
 
-You can preview the production build with `npm run preview`.
+## Ae プラグイン
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
+開発中
+
+## 貢献 / Contribute
