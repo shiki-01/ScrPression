@@ -2,13 +2,14 @@ import path from 'path';
 import fs from 'fs';
 import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItem } from 'electron';
 import isDev from 'electron-is-dev';
-const { autoUpdater } = require('electron-updater');
-const log = require('electron-log');
+import { autoUpdater } from 'electron-updater';
+import electronLog from 'electron-log';
 
+const log = electronLog.create({ logId: 'updater' });
 autoUpdater.logger = log;
-autoUpdater.logger.info('App starting...');
+log.transports.file.level = 'info';
 
-function appUpdater() {
+const appUpdater = () => {
 	autoUpdater.on('update-downloaded', (info) => {
 		dialog
 			.showMessageBox({
