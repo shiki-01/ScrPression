@@ -1,11 +1,11 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import ContextMenu from '$lib/components/ContextMenu.svelte';
-	import Block from '$lib/components/Block.svelte';
-	import Value from '$lib/components/Value.svelte';
-	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { bgscale, blockspace, canvasPosition, output, redo, undo, workspace } from '$lib/stores';
-	import { useCanvas } from '$lib/utils/useCanvas';
+	import ContextMenu from '../lib/components/ContextMenu.svelte';
+	import Block from '../lib/components/Block.svelte';
+	import Value from '../lib/components/Value.svelte';
+	import type { Block as TBlock, WorkspaceState } from '../lib/types';
+	import { bgscale, blockspace, canvasPosition, output, redo, undo, workspace } from '../lib/stores';
+	import { useCanvas } from '../lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 

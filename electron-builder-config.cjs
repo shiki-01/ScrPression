@@ -6,17 +6,13 @@ const config = {
 	productName: 'ScrPression',
 	directories: {
 		output: 'dist',
+		buildResources: 'build'
 	},
 	files: [
 		'!.env',
 		'!electron.vite.config.ts',
 		'!{.eslintrc.json,.prettierrc,.travis.yml,docs,dev-app-update.yml,CHANGELOG.md,README.md}',
-		'src/main.js',
-		'src/preload.cjs',
-		{
-			from: 'build',
-			to: ''
-		}
+		'!src/*',
 	],
 	extraMetadata: {
 		ignoreGitIgnore: true

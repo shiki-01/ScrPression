@@ -1,4 +1,4 @@
-import { canvasPosition, bgscale } from '$lib/stores';
+import { canvasPosition, bgscale } from '../stores';
 
 export const useCanvas = (node: HTMLElement) => {
 	let isDragging: boolean = false;

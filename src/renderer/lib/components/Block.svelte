@@ -1,10 +1,10 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { draggable } from '@neodrag/svelte';
-	import type { Block } from '$lib/types';
-	import { output, workspace } from '$lib/stores';
-	import { ColorPalette } from '$lib/utils/color';
-	import { addBlock, formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
+	import type { Block } from '../types';
+	import { output, workspace } from '../stores';
+	import { ColorPalette } from '../utils/color';
+	import { addBlock, formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '../utils/block';
 	import { toast } from 'svelte-sonner';
 
 	export let content: Block;

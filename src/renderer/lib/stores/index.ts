@@ -1,6 +1,6 @@
 import type { Writable } from 'svelte/store';
 import { writable } from 'svelte/store';
-import type { Block, WorkspaceState } from '$lib/types';
+import type { Block, WorkspaceState } from '../types';
 import { atom } from 'nanostores';
 
 const workspace: Writable<WorkspaceState> = writable({

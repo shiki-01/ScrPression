@@ -1,8 +1,8 @@
 <script lang="ts">
 	import { draggable } from '@neodrag/svelte';
-	import type { Block, WorkspaceState } from '$lib/types';
-	import { workspace, blockspace } from '$lib/stores';
-	import { ColorPalette } from '$lib/utils/color';
+	import type { Block, WorkspaceState } from '../types';
+	import { workspace, blockspace } from '../stores';
+	import { ColorPalette } from '../utils/color';
 
 	export let content: Block;
 	export let strict: boolean = false;

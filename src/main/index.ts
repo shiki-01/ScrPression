@@ -4,6 +4,7 @@ import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItem } from 'electron';
 import isDev from 'electron-is-dev';
 import pkg from 'electron-updater';
 import electronLog from 'electron-log';
+import { fileURLToPath } from 'node:url';
 
 const { autoUpdater } = pkg;
 const log = electronLog.create({ logId: 'updater' });
@@ -24,7 +25,7 @@ const appUpdater = () => {
 				message: '新しいバージョンをインストールしますか？',
 				buttons: ['今すぐ再起動', 'あとで']
 			})
-			.then((/** @type {{ response: number; }} */ buttonIndex) => {
+			.then(( buttonIndex: { response: number }) => {
 				if (buttonIndex.response === 0) {
 					autoUpdater.quitAndInstall();
 				}
@@ -34,22 +35,19 @@ const appUpdater = () => {
 	autoUpdater.checkForUpdatesAndNotify().then(r => console.log(r));
 }
 
-const __filename = new URL(import.meta.url).pathname;
-const __dirname = path.dirname(__filename);
-
 const createWindow = () => {
 	const win = new BrowserWindow({
 		webPreferences: {
-			preload: path.join(__dirname, 'preload.cjs'),
+			preload: fileURLToPath(new URL('../preload/index.mjs', import.meta.url)),
 			contextIsolation: true,
 			nodeIntegration: false,
 		},
 	})
-	win.loadURL(
-		isDev
-			? 'http://localhost:5173'
-			: `file://${path.join(__dirname, '../200.html')}`
-	).then(r => console.log(r));
+	if (isDev) {
+		win.loadURL(process.env.ELECTRON_RENDERER_URL || 'http://localhost:5173').then(r => console.log(r));
+	} else {
+		win.loadFile(path.resolve(fileURLToPath(new URL('../renderer/index.html', import.meta.url)))).then(() => {});
+	}
 }
 
 app.whenReady().then(() => {
