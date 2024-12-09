@@ -43,14 +43,12 @@ const createWindow = () => {
 			preload: path.join(__dirname, 'preload.cjs'),
 			contextIsolation: true,
 			nodeIntegration: false,
-			partition: 'persist:main',
-			webSecurity: false,
 		},
 	})
 	win.loadURL(
 		isDev
 			? 'http://localhost:5173'
-			: `file://${path.join(__dirname, 'build', 'index.html')}`
+			: `file://${path.join(__dirname, '../200.html')}`
 	).then(r => console.log(r));
 }
 

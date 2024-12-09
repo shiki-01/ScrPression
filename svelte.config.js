@@ -4,25 +4,15 @@ import { vitePreprocess } from '@sveltejs/vite-plugin-svelte';
 /** @type {import('@sveltejs/kit').Config} */
 const config = {
 	preprocess: vitePreprocess(),
-	compilerOptions: {
-		runes: false
-	},
 	kit: {
 		adapter: adapter({
-			fallback: 'index.html',
-			precompress: false,
-			strict: false,
+			fallback: '200.html',
 			pages: 'build',
-			assets: 'build'
+			assets: 'build',
+			precompress: false,
+			strict: true
 		}),
-		paths: {
-			base: ''
-		},
-		files: {
-			lib: 'src/lib',
-			routes: 'src/routes',
-			assets: 'static',
-		}
+		prerender: { entries: [] },
 	},
 	onwarn: (warning, handler) => {
 		if (warning.code === 'a11y-click-events-have-key-events') return;

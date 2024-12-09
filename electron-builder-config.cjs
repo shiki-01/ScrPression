@@ -6,17 +6,17 @@ const config = {
 	productName: 'ScrPression',
 	directories: {
 		output: 'dist',
-		buildResources: 'build'
 	},
 	files: [
-		'script/**/*',
-		'**/*',
-		'!**/.vscode/*',
-		'!src/*',
 		'!.env',
 		'!electron.vite.config.ts',
 		'!{.eslintrc.json,.prettierrc,.travis.yml,docs,dev-app-update.yml,CHANGELOG.md,README.md}',
-		'build/**/*',
+		'src/main.js',
+		'src/preload.cjs',
+		{
+			from: 'build',
+			to: ''
+		}
 	],
 	extraMetadata: {
 		ignoreGitIgnore: true
@@ -37,6 +37,7 @@ const config = {
 			}
 		]
 	},
+	asar: false,
 	nsis: {
 		oneClick: false,
 		perMachine: false,

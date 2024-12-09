@@ -12,5 +12,4 @@
 		"moduleResolution": "bundler",
 		"outDir": "build",
 	},
-	"include": ["script/**/*","src/**/*"]
 }
