@@ -1,4 +1,4 @@
-const dotenv = require("dotenv");
+const dotenv = require('dotenv');
 dotenv.config();
 
 const config = {
@@ -9,12 +9,18 @@ const config = {
 		buildResources: 'build'
 	},
 	files: [
+		'script/**/*',
 		'**/*',
 		'!**/.vscode/*',
 		'!src/*',
+		'!.env',
 		'!electron.vite.config.ts',
-		'!{.eslintrc.json,.prettierrc,.travis.yml,docs,dev-app-update.yml,CHANGELOG.md,README.md}'
+		'!{.eslintrc.json,.prettierrc,.travis.yml,docs,dev-app-update.yml,CHANGELOG.md,README.md}',
+		'build/**/*',
 	],
+	extraMetadata: {
+		ignoreGitIgnore: true
+	},
 	publish: {
 		provider: 'github',
 		owner: 'shiki-01',

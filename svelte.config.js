@@ -11,7 +11,9 @@ const config = {
 		adapter: adapter({
 			fallback: 'index.html',
 			precompress: false,
-			strict: false
+			strict: false,
+			pages: 'build',
+			assets: 'build'
 		}),
 		paths: {
 			base: ''
@@ -19,7 +21,7 @@ const config = {
 		files: {
 			lib: 'src/lib',
 			routes: 'src/routes',
-			assets: 'static'
+			assets: 'static',
 		}
 	},
 	onwarn: (warning, handler) => {
