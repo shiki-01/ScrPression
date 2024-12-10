@@ -33,7 +33,6 @@ const config = {
 			}
 		]
 	},
-	asar: false,
 	nsis: {
 		oneClick: false,
 		perMachine: false,
