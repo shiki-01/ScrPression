@@ -3,9 +3,10 @@
 	import Icon from '@iconify/svelte';
 	import ContextMenu from '$lib/components/ContextMenu.svelte';
 	import Block from '$lib/components/Block.svelte';
+	import List from '$lib/components/List.svelte';
 	import Value from '$lib/components/Value.svelte';
 	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { bgscale, blockspace, canvasPosition, output, redo, undo, workspace } from '$lib/stores';
+	import { bgscale, blockspace, canvasPosition, output, pointerPosition, redo, undo, workspace } from '$lib/stores';
 	import { useCanvas } from '$lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
@@ -38,8 +39,8 @@
 			output: true
 		},
 		position: {
-			x: -1010,
-			y: -500
+			x: 10,
+			y: 10
 		},
 		children: '',
 		parentId: '',
@@ -236,6 +237,8 @@
 
 </script>
 
+<svelte:window on:mousemove={(e) => pointerPosition.set({ x: e.clientX, y: e.clientY })} />
+
 <Toaster />
 
 {#if isAdd}
@@ -309,13 +312,13 @@
 		class="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden"
 	>
 		<div
-			class="relative flex h-full w-full flex-col items-start gap-5 overflow-auto bg-slate-200 p-5"
+			class="block-list relative flex h-full w-full flex-col items-start gap-5 bg-slate-200 p-5 select-none"
 		>
-			<Block strict={true} {content} />
-			<Block strict={true} content={content2} />
-			<Block strict={true} content={content3} />
-			<Value strict={true} content={content4} />
-			<Block content={content5} strict={true} />
+			<List {content} />
+			<List content={content2} />
+			<List content={content3} />
+			<!--<Value strict={true} content={content4} />-->
+			<List content={content5} />
 		</div>
 		<div class="grid" style="grid-template-rows: 1fr 250px;">
 			<div class="relative h-full w-full overflow-hidden">

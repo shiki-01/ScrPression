@@ -23,6 +23,7 @@ const removeBlock = (blockId: string) => {
 		if (!block) return ws;
 		ws.blocks.delete(block.id);
 		if (block.children) removeBlock(block.children);
+		console.log(ws.blocks);
 		return ws;
 	});
 };
@@ -38,7 +39,7 @@ const overlap = (node: HTMLElement, target: HTMLElement) => {
 	);
 };
 
-const onDrag = (e: { offsetX: number; offsetY: number }, content: Block) => {
+const onDrag = (content: Block) => {
 	workspace.update((ws) => {
 		const block = ws.blocks.get(content.id);
 		if (!block) return ws;
@@ -51,8 +52,6 @@ const onDrag = (e: { offsetX: number; offsetY: number }, content: Block) => {
 			}
 			block.parentId = '';
 		}
-
-		block.position = { x: e.offsetX, y: e.offsetY };
 		ws.blocks.set(content.id, block);
 		updateChildrenPositions(ws, block);
 		return ws;
@@ -62,8 +61,7 @@ const onDrag = (e: { offsetX: number; offsetY: number }, content: Block) => {
 	handleConnections(content);
 };
 
-const onDragStart = (strict: boolean, content: Block) => {
-	if (strict) return;
+const onDragStart = (content: Block) => {
 	workspace.update((ws) => {
 		const block = ws.blocks.get(content.id);
 		if (!block?.parentId) return ws;
@@ -79,17 +77,13 @@ const onDragStart = (strict: boolean, content: Block) => {
 	});
 };
 
-const onDragEnd = (
-	event: { clientX: number; clientY: number },
-	strict: boolean,
-	content: Block
-) => {
-	if (strict) return;
+const onDragEnd = (event: { clientX: number; clientY: number }, content: Block) => {
 	timeoutState.set(false);
 
 	document.elementsFromPoint(event.clientX, event.clientY).forEach((element) => {
 		if (element.classList.contains('trash')) {
 			removeBlock(content.id);
+			console.log('Block removed');
 			toast.success('Block removed');
 		}
 	});
@@ -152,13 +146,7 @@ const findRootBlock = (
 	return findRootBlock(ws, block.parentId, visited);
 };
 
-const updateBlockPositions = (
-	strict: boolean,
-	ws: WorkspaceState,
-	blockId: string,
-	depth: number = 0
-) => {
-	if (strict) return;
+const updateBlockPositions = (ws: WorkspaceState, blockId: string, depth: number = 0) => {
 	const block = ws.blocks.get(blockId);
 	if (!block) return;
 
@@ -174,7 +162,7 @@ const updateBlockPositions = (
 			childBlock.depth = depth + 1;
 			ws.blocks.set(block.children, childBlock);
 
-			updateBlockPositions(strict, ws, block.children, depth + 1);
+			updateBlockPositions(ws, block.children, depth + 1);
 		}
 	}
 };
@@ -276,6 +264,7 @@ const formatOutput = (blocks: Block[]) => {
 
 export {
 	addBlock,
+	removeBlock,
 	formatOutput,
 	onDrag,
 	onDragStart,

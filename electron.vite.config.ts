@@ -17,7 +17,8 @@ export default defineConfig({
 		build: {
 			lib: {
 				entry: resolve('src/preload/index.ts'),
-				name: 'preload'
+				name: 'preload',
+				formats: ['cjs']
 			}
 		}
 	},

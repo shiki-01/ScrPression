@@ -12,7 +12,7 @@ const config = {
 		'!.env',
 		'!electron.vite.config.ts',
 		'!{.eslintrc.json,.prettierrc,.travis.yml,docs,dev-app-update.yml,CHANGELOG.md,README.md}',
-		'!src/*',
+		'!src/*'
 	],
 	extraMetadata: {
 		ignoreGitIgnore: true
@@ -25,6 +25,7 @@ const config = {
 		private: false,
 		releaseType: 'draft'
 	},
+	asar: true,
 	win: {
 		target: [
 			{

@@ -14,6 +14,8 @@ const bgscale: Writable<number> = writable(1);
 
 const canvasPosition: Writable<{ x: number; y: number }> = writable({ x: 0, y: 0 });
 
+const pointerPosition: Writable<{ x: number; y: number }> = writable({ x: 0, y: 0 });
+
 const output: Writable<string> = writable('');
 
 interface HistoryState {
@@ -138,4 +140,15 @@ const redo = () => {
 	history.set(currentHistory);
 };
 
-export { workspace, blockspace, bgscale, canvasPosition, output, history, undo, redo, pushUndo };
+export {
+	workspace,
+	blockspace,
+	bgscale,
+	pointerPosition,
+	canvasPosition,
+	output,
+	history,
+	undo,
+	redo,
+	pushUndo
+};

@@ -1,14 +1,13 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { useDrag } from '$lib/utils/useDrag';
 	import type { Block } from '$lib/types';
 	import { output, workspace } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
-	import { formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
+	import { addBlock, formatOutput } from '$lib/utils/block';
 	import { toast } from 'svelte-sonner';
+	import { onMount } from 'svelte';
 
 	export let content: Block;
-	export let strict: boolean = false;
 
 	let block: HTMLElement;
 	let field: HTMLInputElement;
@@ -16,8 +15,6 @@
 	let height: number = 60;
 	let clientX: number = 0;
 	let clientY: number = 0;
-
-	let BlockListWidth = 250;
 
 	$: width = block ? block.clientWidth + 6 : 1000;
 	$: height = block ? block.clientHeight + 6 : 60;
@@ -36,7 +33,13 @@
 
 	let isDragging = false;
 
-	$: isDragging = content.position.x < 0;
+	let position = { x: 0, y: 0 };
+
+	onMount(() => {
+		if (block) {
+			position = { x: block.offsetLeft, y: block.offsetTop };
+		}
+	});
 </script>
 
 <svelte:window on:mousemove={(e) => {
@@ -47,27 +50,13 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	bind:this={block}
-	class="cancel {strict ? '' : isDragging ? 'fixed' : 'absolute'}"
-	style="z-index: {strict ? 0 : 99999}; top: {content.position.y}px; left: {content.position.x}px;"
-	role="button"
-	tabindex="0"
-	use:useDrag={{
-		bounds: 'parent',
-		position: content.position,
-		onDrag: () => {
-			if (strict) return;
-			onDrag(content)
-		},
-		onStart: (e) => {
-			onDragStart(content);
-		},
-		onEnd: (e) => {
-			onDragEnd(e,content);
-		}
-	}}
+	class="cancel"
 	on:click={() => {
-			updateZIndex($workspace, content.id);
+		addBlock(content);
 	}}
+	role="button"
+	style="z-index: {content.zIndex};"
+	tabindex="0"
 >
 	<div
 		class="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
@@ -76,34 +65,32 @@
 		{#if content.connections.input}
 			<span
 				data-id={content.id}
-				class:input={!strict}
-				class="absolute left-4 top-0 h-2 w-6"
+				class="input absolute left-4 top-0 h-2 w-6"
 			></span>
 		{/if}
 		{#if content.connections.output}
 			<span
 				data-id={content.id}
-				class:output={!strict}
-				class="absolute bottom-0 left-4 h-2 w-6"
+				class="input absolute bottom-0 left-4 h-2 w-6"
 			></span>
 		{/if}
 		<div class="absolute left-0 top-0 -z-10 h-0 w-full">
-			<svg class="" width={width + 2} {height} role="none" xmlns="http://www.w3.org/2000/svg">
+			<svg class="" {height} role="none" width={width + 2} xmlns="http://www.w3.org/2000/svg">
 				<path
-					style="filter: drop-shadow(0 4px 0 {ColorPalette[content.color].border});"
-					fill={ColorPalette[content.color].bg}
-					stroke={ColorPalette[content.color].border}
-					stroke-width="2"
 					d={isFlag
 						? `M 14 2 L 42 2 L ${width - 14} 2 Q ${width} 2 ${width} 14 L ${width} ${height - 18} Q ${width} ${height - 14} ${width - 4} ${height - 14} L 40 ${height - 14} L 40 ${height - 10} Q 40 ${height - 8} 36 ${height - 8} L 20 ${height - 8} Q 16 ${height - 8} 16 ${height - 10} L 16 ${height - 14} L 4 ${height - 14} Q 2 ${height - 14} 2 ${height - 18} L 2 14 Q 2 2 14 2 Z`
 						: `M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L ${width - 4} 2 Q ${width} 2 ${width} 4 L ${width} ${height - 18} Q ${width} ${height - 14} ${width - 4} ${height - 14} L 40 ${height - 14} L 40 ${height - 10} Q 40 ${height - 8} 36 ${height - 8} L 20 ${height - 8} Q 16 ${height - 8} 16 ${height - 10} L 16 ${height - 14} L 4 ${height - 14} Q 2 ${height - 14} 2 ${height - 18} L 2 4 Q 2 2 4 2 Z`
 					}
+					fill={ColorPalette[content.color].bg}
+					stroke={ColorPalette[content.color].border}
+					stroke-width="2"
+					style="filter: drop-shadow(0 4px 0 {ColorPalette[content.color].border});"
 				></path>
 			</svg>
 		</div>
 		<div
-			style="color: {ColorPalette[content.color].text};"
 			class="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
+			style="color: {ColorPalette[content.color].text};"
 		>
 			<div class="whitespace-nowrap font-bold">{content.title}</div>
 			<div class="flex flex-row gap-2 align-middle">

@@ -1,6 +1,5 @@
 import path from 'path';
-import fs from 'fs';
-import { app, BrowserWindow, dialog, ipcMain, Menu, MenuItem } from 'electron';
+import { app, BrowserWindow, dialog } from 'electron';
 import isDev from 'electron-is-dev';
 import pkg from 'electron-updater';
 import electronLog from 'electron-log';
@@ -25,30 +24,34 @@ const appUpdater = () => {
 				message: '新しいバージョンをインストールしますか？',
 				buttons: ['今すぐ再起動', 'あとで']
 			})
-			.then(( buttonIndex: { response: number }) => {
+			.then((buttonIndex: { response: number }) => {
 				if (buttonIndex.response === 0) {
 					autoUpdater.quitAndInstall();
 				}
 			});
 	});
 
-	autoUpdater.checkForUpdatesAndNotify().then(r => console.log(r));
-}
+	autoUpdater.checkForUpdatesAndNotify().then((r) => console.log(r));
+};
 
 const createWindow = () => {
 	const win = new BrowserWindow({
 		webPreferences: {
-			preload: fileURLToPath(new URL('../preload/index.mjs', import.meta.url)),
+			preload: fileURLToPath(new URL('../preload/index.cjs', import.meta.url)),
 			contextIsolation: true,
-			nodeIntegration: false,
-		},
-	})
+			nodeIntegration: false
+		}
+	});
 	if (isDev) {
-		win.loadURL(process.env.ELECTRON_RENDERER_URL || 'http://localhost:5173').then(r => console.log(r));
+		win
+			.loadURL(process.env.ELECTRON_RENDERER_URL || 'http://localhost:5173')
+			.then((r) => console.log(r));
 	} else {
-		win.loadFile(path.resolve(fileURLToPath(new URL('../renderer/index.html', import.meta.url)))).then(() => {});
+		win
+			.loadFile(path.resolve(fileURLToPath(new URL('../renderer/index.html', import.meta.url))))
+			.then(() => {});
 	}
-}
+};
 
 app.whenReady().then(() => {
 	createWindow();
@@ -56,13 +59,13 @@ app.whenReady().then(() => {
 
 	app.on('activate', () => {
 		if (BrowserWindow.getAllWindows().length === 0) {
-			createWindow()
+			createWindow();
 		}
-	})
-})
+	});
+});
 
 app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') {
-		app.quit()
+		app.quit();
 	}
-})
+});
