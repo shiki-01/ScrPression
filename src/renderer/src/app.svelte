@@ -8,6 +8,7 @@
 	import { useCanvas } from '../lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
+	import { Toaster } from 'svelte-sonner';
 
 	const content: TBlock = {
 		id: '',
@@ -233,6 +234,8 @@
 	let isAdd: boolean = false;
 
 </script>
+
+<Toaster />
 
 {#if isAdd}
 	<div

@@ -3,7 +3,10 @@ import type { Config } from 'tailwindcss';
 
 const config: Config = {
 	darkMode: ['class'],
-	content: ['./src/**/*.{html,js,svelte,ts}'],
+	content: [
+		'./src/**/*.{html,js,svelte,ts}',
+		'./lib/**/*.{html,js,svelte,ts}',
+	],
 	safelist: ['dark'],
 	theme: {
 		container: {
