@@ -1,4 +1,5 @@
 <script lang="ts">
+	import './app.css'
 	import Icon from '@iconify/svelte';
 	import ContextMenu from '../lib/components/ContextMenu.svelte';
 	import Block from '../lib/components/Block.svelte';

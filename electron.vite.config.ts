@@ -11,12 +11,7 @@ export default defineConfig({
 				entry: resolve('src/main/index.ts'),
 				name: 'main'
 			},
-			rollupOptions: {
-				output: {
-					format: 'es'
-				}
-			}
-		}
+		},
 	},
 	preload: {
 		plugins: [externalizeDepsPlugin()],
@@ -25,12 +20,7 @@ export default defineConfig({
 				entry: resolve('src/preload/index.ts'),
 				name: 'preload'
 			},
-			rollupOptions: {
-				output: {
-					format: 'es'
-				}
-			}
-		}
+		},
 	},
 	renderer: {
 		plugins: [svelte(), tailwindcss()],
@@ -38,12 +28,12 @@ export default defineConfig({
 			alias: {
 				$: resolve('src/renderer/src'),
 				$lib: resolve('src/renderer/src/lib')
-			}
+			},
 		},
 		build: {
 			rollupOptions: {
 				input: resolve('src/renderer/index.html')
-			}
-		}
-	}
+			},
+		},
+	},
 });
