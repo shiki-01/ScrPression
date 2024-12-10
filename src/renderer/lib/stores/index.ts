@@ -1,11 +1,11 @@
 import type { Writable } from 'svelte/store';
 import { writable } from 'svelte/store';
-import type { Block, WorkspaceState } from '../types';
+import type { Block, WorkspaceState } from '$lib/types';
 import { atom } from 'nanostores';
 
 const workspace: Writable<WorkspaceState> = writable({
 	blocks: new Map<string, Block>(),
-	title: 'Untitled',
+	title: 'Untitled'
 });
 
 const blockspace: Writable<HTMLElement | null> = writable(null);
@@ -47,8 +47,8 @@ const createHistoryState = (state: Writable<WorkspaceState>): HistoryState => {
 const restoreState = (state: HistoryState): WorkspaceState => {
 	let title = 'Untitled';
 	workspace.subscribe((ws) => {
-		title= ws.title;
-	})
+		title = ws.title;
+	});
 	const blocks = new Map(state.blocks);
 	blocks.forEach((block, key) => {
 		const position = state.positions.get(key);

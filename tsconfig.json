@@ -11,14 +11,21 @@
 		"strict": true,
 		"moduleResolution": "bundler",
 		"outDir": "build",
+		"baseUrl": ".",
 		"paths": {
-			"$lib": ["./src/renderer/src/lib"],
-			"$lib/*": ["./src/renderer/src/lib/*"]
+			"$lib": [
+				"./src/renderer/lib"
+			],
+			"$lib/*": [
+				"./src/renderer/lib/*"
+			]
 		}
 	},
 	"include": [
 		"./src/renderer/src/**/*.ts",
 		"./src/renderer/src/**/*.svelte",
+		"./src/renderer/lib/**/*.ts",
+		"./src/renderer/lib/**/*.svelte",
 		"./src/preload/**/*.ts",
 		"./src/types/*.d.ts"
 	]

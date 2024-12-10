@@ -1,5 +1,5 @@
-import { blockspace, output, pushUndo, workspace } from '../stores';
-import type { Block, WorkspaceState } from '../types';
+import { blockspace, output, pushUndo, workspace } from '$lib/stores';
+import type { Block, WorkspaceState } from '$lib/types';
 import { writable, type Writable } from 'svelte/store';
 import { toast } from 'svelte-sonner';
 

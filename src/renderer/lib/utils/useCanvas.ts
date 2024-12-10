@@ -1,4 +1,4 @@
-import { canvasPosition, bgscale } from '../stores';
+import { bgscale, canvasPosition } from '$lib/stores';
 
 export const useCanvas = (node: HTMLElement) => {
 	let isDragging: boolean = false;
@@ -13,7 +13,7 @@ export const useCanvas = (node: HTMLElement) => {
 		startX = event.clientX;
 		startY = event.clientY;
 		node.style.cursor = 'grabbing';
-	}
+	};
 
 	const onMouseMove = (event: PointerEvent) => {
 		if (!isDragging || isCancel(event)) return;
@@ -25,7 +25,7 @@ export const useCanvas = (node: HTMLElement) => {
 
 		bgscale.subscribe((v) => {
 			scale = v;
-		})
+		});
 
 		const newTranslateX = translateX + deltaX / scale;
 		const newTranslateY = translateY + deltaY / scale;
@@ -34,30 +34,24 @@ export const useCanvas = (node: HTMLElement) => {
 		if (!node.parentElement) return;
 		const parentRect = node.parentElement.getBoundingClientRect();
 
-		if (
-			newTranslateX <= 0 &&
-			newTranslateX >= -(rect.width / scale - parentRect.width)
-		) {
+		if (newTranslateX <= 0 && newTranslateX >= -(rect.width / scale - parentRect.width)) {
 			translateX = newTranslateX;
 			startX = event.clientX;
 		}
 
-		if (
-			newTranslateY <= 0 &&
-			newTranslateY >= -(rect.height / scale - parentRect.height)
-		) {
+		if (newTranslateY <= 0 && newTranslateY >= -(rect.height / scale - parentRect.height)) {
 			translateY = newTranslateY;
 			startY = event.clientY;
 		}
 
 		node.style.transform = `translate(${translateX}px, ${translateY}px)`;
 		canvasPosition.update(() => ({ x: translateX, y: translateY }));
-	}
+	};
 
 	const onMouseUp = () => {
 		isDragging = false;
 		node.style.cursor = 'grab';
-	}
+	};
 
 	node.style.cursor = 'grab';
 	node.addEventListener('pointerdown', onMouseDown);
@@ -69,9 +63,9 @@ export const useCanvas = (node: HTMLElement) => {
 			node.removeEventListener('pointerdown', onMouseDown);
 			window.removeEventListener('pointermove', onMouseMove);
 			window.removeEventListener('pointerup', onMouseUp);
-		},
+		}
 	};
-}
+};
 
 const isCancel = (e: MouseEvent) => {
 	let isCancel = false;
@@ -84,4 +78,4 @@ const isCancel = (e: MouseEvent) => {
 	});
 
 	return isCancel;
-}
+};

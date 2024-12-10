@@ -1,6 +1,6 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
-	import { history, redo, undo } from '../stores';
+	import { history, redo, undo } from '$lib/stores';
 
 	export let isOpen: boolean = false;
 	export let clientX: number = 0;
