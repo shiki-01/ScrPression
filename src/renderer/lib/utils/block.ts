@@ -40,39 +40,33 @@ const overlap = (node: HTMLElement, target: HTMLElement) => {
 };
 
 const onDrag = (content: Block) => {
-	workspace.update((ws) => {
+	workspace.subscribe((ws) => {
 		const block = ws.blocks.get(content.id);
 		if (!block) return ws;
-
-		if (block.parentId) {
-			const parentBlock = ws.blocks.get(block.parentId);
-			if (parentBlock) {
-				parentBlock.children = '';
-				ws.blocks.set(parentBlock.id, parentBlock);
-			}
-			block.parentId = '';
-		}
-		ws.blocks.set(content.id, block);
+		console.log('dragging', block);
 		updateChildrenPositions(ws, block);
-		return ws;
+		updateZIndex(ws, content.id);
 	});
-
-	workspace.subscribe((ws) => updateZIndex(ws, content.id));
 	handleConnections(content);
 };
 
 const onDragStart = (content: Block) => {
 	workspace.update((ws) => {
 		const block = ws.blocks.get(content.id);
-		if (!block?.parentId) return ws;
+		if (!block) return ws;
 
-		timeoutState.set(true);
-		const parentBlock = ws.blocks.get(block.parentId);
-		if (parentBlock) {
-			parentBlock.children = '';
-			ws.blocks.set(parentBlock.id, parentBlock);
+		if (block.parentId) {
+			timeoutState.set(true);
+			console.log('timeout');
+			const parentBlock = ws.blocks.get(block.parentId);
+			if (parentBlock) {
+				parentBlock.children = '';
+				ws.blocks.set(parentBlock.id, parentBlock);
+			}
+			block.parentId = '';
+			ws.blocks.set(block.id, block);
 		}
-		block.parentId = '';
+
 		return ws;
 	});
 };
@@ -83,7 +77,6 @@ const onDragEnd = (event: { clientX: number; clientY: number }, content: Block) 
 	document.elementsFromPoint(event.clientX, event.clientY).forEach((element) => {
 		if (element.classList.contains('trash')) {
 			removeBlock(content.id);
-			console.log('Block removed');
 			toast.success('Block removed');
 		}
 	});
@@ -170,16 +163,27 @@ const updateBlockPositions = (ws: WorkspaceState, blockId: string, depth: number
 const handleBlockConnection = (ws: WorkspaceState, sourceId: string, targetId: string) => {
 	const sourceBlock = ws.blocks.get(sourceId);
 	const targetBlock = ws.blocks.get(targetId);
+
+	if (!sourceBlock || !targetBlock) return false;
+
 	let timeout = false;
 	timeoutState.subscribe((state) => {
 		timeout = state;
-	});
+	})();
 
-	if (!sourceBlock || !targetBlock || timeout) return false;
+	if (timeout || sourceBlock.children || targetId === sourceId) return false;
 
-	if (sourceBlock.children) {
+	console.log('connecting', sourceBlock, targetBlock);
+	const checkCircularReference = (blockId: string, targetId: string): boolean => {
+		let current: Block | undefined = ws.blocks.get(blockId);
+		while (current) {
+			if (current.id === targetId) return true;
+			current = current.parentId ? ws.blocks.get(current.parentId) : undefined;
+		}
 		return false;
-	}
+	};
+
+	if (checkCircularReference(targetId, sourceId)) return false;
 
 	if (targetBlock.parentId) {
 		const oldParent = ws.blocks.get(targetBlock.parentId);
@@ -192,31 +196,12 @@ const handleBlockConnection = (ws: WorkspaceState, sourceId: string, targetId: s
 	sourceBlock.children = targetId;
 	targetBlock.parentId = sourceId;
 
-	targetBlock.position = {
-		x: sourceBlock.position.x,
-		y: sourceBlock.position.y + offset
-	};
-
-	let currentBlock = targetBlock;
-	let currentOffset = offset;
-
-	while (currentBlock.children) {
-		const childBlock = ws.blocks.get(currentBlock.children);
-		if (!childBlock) break;
-
-		currentOffset += offset;
-		childBlock.position = {
-			x: sourceBlock.position.x,
-			y: sourceBlock.position.y + currentOffset
-		};
-		ws.blocks.set(childBlock.id, childBlock);
-		currentBlock = childBlock;
-	}
+	updateBlockPositions(ws, sourceId);
+	updateZIndex(ws, sourceId);
 
 	ws.blocks.set(sourceId, sourceBlock);
 	ws.blocks.set(targetId, targetBlock);
 
-	updateZIndex(ws, sourceId);
 	return true;
 };
 

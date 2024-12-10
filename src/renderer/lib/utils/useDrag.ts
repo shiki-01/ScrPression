@@ -1,69 +1,78 @@
 export const useDrag = (
-	element: HTMLElement,
-	e: {
-		bounds: 'parent' | 'body';
-		position: { x: number; y: number };
-		onDrag: (event: PointerEvent) => void;
-		onStart: (event: PointerEvent) => void;
-		onEnd: (event: PointerEvent) => void;
-	}
+  element: HTMLElement,
+  params: {
+    bounds: 'parent' | 'body';
+    position: { x: number; y: number };
+    onDrag: (event: PointerEvent) => void;
+    onStart: (event: PointerEvent) => void;
+    onEnd: (event: PointerEvent) => void;
+  }
 ) => {
-	let isDragging: boolean = false;
-	let startX: number = 0;
-	let startY: number = 0;
-	let initialX: number = e.position.x;
-	let initialY: number = e.position.y;
+  let isDragging = false;
+  let startX = 0;
+  let startY = 0;
+  let initialX = params.position.x;
+  let initialY = params.position.y;
 
-	const onMouseDown = (event: PointerEvent) => {
-		isDragging = true;
-		startX = event.clientX;
-		startY = event.clientY;
-		element.style.cursor = 'grabbing';
-		e.onStart(event);
-		window.addEventListener('pointermove', onMouseMove);
-		window.addEventListener('pointerup', onMouseUp);
-	};
+  const cleanup = () => {
+    window.removeEventListener('pointermove', onMouseMove);
+    window.removeEventListener('pointerup', onMouseUp);
+  };
 
-	const onMouseMove = (event: PointerEvent) => {
-		if (!isDragging) return;
+  const onMouseDown = (event: PointerEvent) => {
+    isDragging = true;
+    startX = event.clientX;
+    startY = event.clientY;
+    element.style.cursor = 'grabbing';
+    params.onStart(event);
 
-		const deltaX = event.clientX - startX;
-		const deltaY = event.clientY - startY;
+    window.addEventListener('pointermove', onMouseMove);
+    window.addEventListener('pointerup', onMouseUp);
+  };
 
-		let newX = initialX + deltaX;
-		let newY = initialY + deltaY;
+  const onMouseMove = (event: PointerEvent) => {
+    if (!isDragging) return;
 
-		if (e.bounds === 'parent') {
-			const parentRect = element.parentElement?.getBoundingClientRect();
-			if (!parentRect) return;
+    event.preventDefault();
+    const deltaX = event.clientX - startX;
+    const deltaY = event.clientY - startY;
 
-			const maxX = parentRect.width - element.offsetWidth;
-			const maxY = parentRect.height - element.offsetHeight;
-			const minY = 0;
+    let newX = initialX + deltaX;
+    let newY = initialY + deltaY;
 
-			newX = Math.min(newX, maxX);
-			newY = Math.min(Math.max(newY, minY), maxY);
-		}
+    if (params.bounds === 'parent') {
+      const parentRect = element.parentElement?.getBoundingClientRect();
+      if (parentRect) {
+        const maxX = parentRect.width - element.offsetWidth;
+        const maxY = parentRect.height - element.offsetHeight;
+        newX = Math.max(0, Math.min(newX, maxX));
+        newY = Math.max(0, Math.min(newY, maxY));
+      }
+    }
 
-		e.position.x = newX;
-		e.position.y = newY;
+    params.position.x = newX;
+    params.position.y = newY;
+    params.onDrag(event);
+  };
 
-		element.style.left = `${newX}px`;
-		element.style.top = `${newY}px`;
-		e.onDrag(event);
-	};
+  const onMouseUp = (event: PointerEvent) => {
+    if (!isDragging) return;
 
-	const onMouseUp = (event: PointerEvent) => {
-		if (!isDragging) return;
-		isDragging = false;
-		initialX = e.position.x;
-		initialY = e.position.y;
-		element.style.cursor = 'grab';
-		e.onEnd(event);
-		window.removeEventListener('pointermove', onMouseMove);
-		window.removeEventListener('pointerup', onMouseUp);
-	};
+    isDragging = false;
+    initialX = params.position.x;
+    initialY = params.position.y;
+    element.style.cursor = 'grab';
+    params.onEnd(event);
+    cleanup();
+  };
 
-	element.style.cursor = 'grab';
-	element.addEventListener('pointerdown', onMouseDown);
+  element.style.cursor = 'grab';
+  element.addEventListener('pointerdown', onMouseDown);
+
+  return {
+    destroy() {
+      element.removeEventListener('pointerdown', onMouseDown);
+      cleanup();
+    }
+  };
 };

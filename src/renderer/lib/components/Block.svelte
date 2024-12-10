@@ -6,6 +6,7 @@
 	import { ColorPalette } from '$lib/utils/color';
 	import { formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
 	import { toast } from 'svelte-sonner';
+	import { onMount } from 'svelte';
 
 	export let content: Block;
 	export let strict: boolean = false;
@@ -55,7 +56,6 @@
 		bounds: 'parent',
 		position: content.position,
 		onDrag: () => {
-			if (strict) return;
 			onDrag(content)
 		},
 		onStart: (e) => {
@@ -76,15 +76,13 @@
 		{#if content.connections.input}
 			<span
 				data-id={content.id}
-				class:input={!strict}
-				class="absolute left-4 top-0 h-2 w-6"
+				class="input absolute left-4 top-0 h-2 w-6"
 			></span>
 		{/if}
 		{#if content.connections.output}
 			<span
 				data-id={content.id}
-				class:output={!strict}
-				class="absolute bottom-0 left-4 h-2 w-6"
+				class="output absolute bottom-0 left-4 h-2 w-6"
 			></span>
 		{/if}
 		<div class="absolute left-0 top-0 -z-10 h-0 w-full">

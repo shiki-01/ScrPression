@@ -51,7 +51,7 @@
 <div
 	bind:this={block}
 	class="cancel"
-	on:click={() => {
+	on:pointerdown={() => {
 		addBlock(content);
 	}}
 	role="button"
@@ -65,13 +65,13 @@
 		{#if content.connections.input}
 			<span
 				data-id={content.id}
-				class="input absolute left-4 top-0 h-2 w-6"
+				class="absolute left-4 top-0 h-2 w-6"
 			></span>
 		{/if}
 		{#if content.connections.output}
 			<span
 				data-id={content.id}
-				class="input absolute bottom-0 left-4 h-2 w-6"
+				class="absolute bottom-0 left-4 h-2 w-6"
 			></span>
 		{/if}
 		<div class="absolute left-0 top-0 -z-10 h-0 w-full">
