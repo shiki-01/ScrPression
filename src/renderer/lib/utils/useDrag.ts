@@ -1,8 +1,12 @@
+import { workspace } from "$lib/stores";
+import type { Block } from "$lib/types";
+
 export const useDrag = (
   element: HTMLElement,
   params: {
     bounds: 'parent' | 'body';
     position: { x: number; y: number };
+    content: Block;
     onDrag: (event: PointerEvent) => void;
     onStart: (event: PointerEvent) => void;
     onEnd: (event: PointerEvent) => void;
@@ -11,8 +15,9 @@ export const useDrag = (
   let isDragging = false;
   let startX = 0;
   let startY = 0;
-  let initialX = params.position.x;
-  let initialY = params.position.y;
+  let initialX = params.content.position.x;
+  let initialY = params.content.position.y;
+  let block = params.content
 
   const cleanup = () => {
     window.removeEventListener('pointermove', onMouseMove);
@@ -31,6 +36,9 @@ export const useDrag = (
   };
 
   const onMouseMove = (event: PointerEvent) => {
+    workspace.subscribe((ws) => {
+      block = ws.blocks.get(block.id) || block;
+    })
     if (!isDragging) return;
 
     event.preventDefault();
@@ -45,13 +53,15 @@ export const useDrag = (
       if (parentRect) {
         const maxX = parentRect.width - element.offsetWidth;
         const maxY = parentRect.height - element.offsetHeight;
-        newX = Math.max(0, Math.min(newX, maxX));
+        newX = Math.min(newX, maxX);
         newY = Math.max(0, Math.min(newY, maxY));
       }
     }
 
     params.position.x = newX;
     params.position.y = newY;
+    block.position.x = newX;
+    block.position.y = newY;
     params.onDrag(event);
   };
 

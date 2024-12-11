@@ -37,7 +37,51 @@
 
 	let isDragging = false;
 
-	$: isDragging = content.position.x < 0;
+	$: isDragging = content.position.x <= 10;
+
+	onMount(() => {
+		let startX = content.position.x + BlockListWidth;
+		let startY = content.position.y;
+		let isDragging = false;
+		let block = $workspace.blocks.get(content.id) || content;
+
+		const handlePointerDown = (e: PointerEvent) => {
+			if (e.buttons === 1) {
+				onDragStart(content);
+				isDragging = true;
+				window.addEventListener('pointermove', handlePointerMove);
+				window.addEventListener('pointerup', handlePointerUp);
+			}
+		}
+
+		const handlePointerMove = (e: PointerEvent) => {
+			if (isDragging) {
+				content.position.x = e.clientX - startX;
+				content.position.y = e.clientY - clientY;
+				block.position.x = e.clientX - startX;
+				block.position.y = e.clientY - startY;
+				onDrag(content);
+			}
+		}
+
+		const handlePointerUp = (e: PointerEvent) => {
+			if (isDragging) {
+				onDragEnd(e, content);
+				isDragging = false;
+				window.removeEventListener('pointerdown', handlePointerDown);
+				window.removeEventListener('pointermove', handlePointerMove);
+				window.removeEventListener('pointerup', handlePointerUp);
+			}
+		}
+
+		window.addEventListener('pointerdown', handlePointerDown);
+
+		return () => {
+			window.removeEventListener('pointerdown', handlePointerDown);
+			window.removeEventListener('pointermove', handlePointerMove);
+			window.removeEventListener('pointerup', handlePointerUp);
+		}
+	})
 </script>
 
 <svelte:window on:mousemove={(e) => {
@@ -48,13 +92,14 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	bind:this={block}
-	class="cancel {strict ? '' : isDragging ? 'fixed' : 'absolute'}"
+	class="cancel {strict ? '' : isDragging ? 'fixed bg-red-400' : 'absolute'}"
 	style="z-index: {strict ? 0 : 99999}; top: {content.position.y}px; left: {content.position.x}px;"
 	role="button"
 	tabindex="0"
 	use:useDrag={{
 		bounds: 'parent',
 		position: content.position,
+		content,
 		onDrag: () => {
 			onDrag(content)
 		},

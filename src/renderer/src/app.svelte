@@ -262,7 +262,7 @@
 
 <main
 	bind:this={main}
-	class="relative touch-none grid h-[100svh] w-[100svw] grid-rows-[50px_1fr] overflow-hidden"
+	class="relative touch-none select-none grid h-[100svh] w-[100svw] grid-rows-[50px_1fr] overflow-hidden"
 >
 	<div class="flex h-full w-full flex-row justify-between bg-slate-500 px-5">
 		<div class="flex flex-row gap-4">
