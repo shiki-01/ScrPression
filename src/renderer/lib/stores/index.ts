@@ -3,7 +3,75 @@ import { writable } from 'svelte/store';
 import type { Block, WorkspaceState } from '$lib/types';
 import { atom } from 'nanostores';
 
-const workspace: Writable<WorkspaceState> = writable({
+type Store<T> = {
+	subscribe: (fn: (value: T) => void) => () => void;
+	set: (value: T) => void;
+	update: (fn: (value: T) => T) => void;
+	blockUpdate: (id: string, block: Block) => void;
+	get: () => T;
+	delete: (id: string) => void;
+};
+
+const store = (initialValue: WorkspaceState) => {
+	const subscribers = new Set<(value: WorkspaceState) => void>();
+	let currentValue = initialValue;
+
+	const notify = () => {
+		subscribers.forEach((fn: (value: WorkspaceState) => void) => fn(currentValue));
+	};
+
+	const subscribe = (fn: (value: WorkspaceState) => void) => {
+		subscribers.add(fn);
+		fn(currentValue);
+		return () => subscribers.delete(fn);
+	};
+
+	const set = (newValue: WorkspaceState) => {
+		if (newValue === currentValue) return;
+		currentValue = newValue;
+		notify();
+	};
+
+	const update = (fn: (value: WorkspaceState) => WorkspaceState) => {
+		const newValue = fn(currentValue);
+		set(newValue);
+	};
+
+	const blockUpdate = (id: string, block: Block) => {
+		update((ws) => {
+			const newBlocks = new Map(ws.blocks);
+			newBlocks.set(id, block);
+			return {
+				...ws,
+				blocks: newBlocks
+			};
+		});
+	};
+
+	const get = () => {
+		return currentValue;
+	};
+
+	return {
+		subscribe,
+		set,
+		update,
+		blockUpdate,
+		get,
+		delete: (id: string) => {
+			update((ws) => {
+				const newBlocks = new Map(ws.blocks);
+				newBlocks.delete(id);
+				return {
+					...ws,
+					blocks: newBlocks
+				};
+			});
+		}
+	};
+};
+
+const workspace: Store<WorkspaceState> = store({
 	blocks: new Map<string, Block>(),
 	title: 'Untitled'
 });

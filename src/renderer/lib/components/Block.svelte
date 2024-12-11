@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import { useDrag } from '$lib/utils/useDrag';
 	import type { Block } from '$lib/types';
-	import { output, workspace, newBlockPosition } from '$lib/stores';
+	import { newBlockPosition, output, workspace } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
 	import { formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
 	import { toast } from 'svelte-sonner';
@@ -41,42 +41,39 @@
 
 	onMount(() => {
 		let initialX = content.position.x + BlockListWidth + $newBlockPosition.x;
-        let initialY = content.position.y + $newBlockPosition.y;
-        let startX = 0;
-        let startY = 0;
+		let initialY = content.position.y + $newBlockPosition.y;
 		let isDragging = false;
-		let blocks = $workspace.blocks.get(content.id) || content;
+		let blocks = $workspace.blocks.get(content.id) as Block;
 
 		const handlePointerDown = (e: PointerEvent) => {
 			if (e.buttons === 1) {
 				onDragStart(content);
 				isDragging = true;
-				startX = e.clientX;
-                startY = e.clientY;
 				window.addEventListener('pointermove', handlePointerMove);
 				window.addEventListener('pointerup', handlePointerUp);
 			}
-		}
+		};
 
 		const handlePointerMove = (e: PointerEvent) => {
-			const canvas = document.querySelector('.canvas');
-			if (canvas?.contains(e.target as Node)) return
 			if (isDragging) {
 				const newX = e.clientX - initialX;
-                const newY = e.clientY - initialY;
-            
-                content.position.x = newX;
-                content.position.y = newY;
-                blocks.position.x = newX;
-                blocks.position.y = newY;
-            
-                workspace.update((ws) => {
-                    ws.blocks.set(content.id, blocks);
-                    return ws;
-                });
-				onDrag(content);
+				const newY = e.clientY - initialY;
+
+				workspace.update(ws => {
+					const updatedBlock = {
+						...blocks,
+						position: { x: newX, y: newY }
+					};
+					const newBlocks = new Map(ws.blocks);
+					newBlocks.set(content.id, updatedBlock);
+
+					return {
+						...ws,
+						blocks: newBlocks
+					};
+				});
 			}
-		}
+		};
 
 		const handlePointerUp = (e: PointerEvent) => {
 			if (isDragging) {
@@ -85,12 +82,12 @@
 				workspace.update((ws) => {
 					ws.blocks.set(content.id, blocks);
 					return ws;
-				})
+				});
 				window.removeEventListener('pointermove', handlePointerMove);
 				window.removeEventListener('pointerup', handlePointerUp);
 				window.removeEventListener('pointerdown', handlePointerDown);
 			}
-		}
+		};
 
 		window.addEventListener('pointerdown', handlePointerDown);
 
@@ -98,8 +95,8 @@
 			window.removeEventListener('pointerdown', handlePointerDown);
 			window.removeEventListener('pointermove', handlePointerMove);
 			window.removeEventListener('pointerup', handlePointerUp);
-		}
-	})
+		};
+	});
 </script>
 
 <svelte:window on:mousemove={(e) => {
@@ -110,7 +107,7 @@
 <!-- svelte-ignore a11y_click_events_have_key_events -->
 <div
 	bind:this={block}
-	class="cancel {strict ? '' : isDragging ? 'fixed bg-red-400' : 'absolute'}"
+	class="cancel {strict ? '' : isDragging ? 'fixed ' : 'absolute'}"
 	style="z-index: {strict ? 0 : 99999}; top: {content.position.y}px; left: {content.position.x}px;"
 	role="button"
 	tabindex="0"
