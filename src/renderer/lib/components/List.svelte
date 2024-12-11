@@ -1,7 +1,7 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import type { Block } from '$lib/types';
-	import { output, workspace } from '$lib/stores';
+	import { output, workspace, newBlockPosition } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
 	import { addBlock, formatOutput } from '$lib/utils/block';
 	import { toast } from 'svelte-sonner';
@@ -53,6 +53,8 @@
 	class="cancel"
 	on:pointerdown={() => {
 		addBlock(content);
+		const blockRect = block.getBoundingClientRect()
+		newBlockPosition.set({ x: blockRect.x, y: blockRect.y });
 	}}
 	role="button"
 	style="z-index: {content.zIndex};"

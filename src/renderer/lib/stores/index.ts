@@ -16,6 +16,8 @@ const canvasPosition: Writable<{ x: number; y: number }> = writable({ x: 0, y: 0
 
 const pointerPosition: Writable<{ x: number; y: number }> = writable({ x: 0, y: 0 });
 
+const newBlockPosition: Writable<{ x: number; y: number }> = writable({ x: 0, y: 0 });
+
 const output: Writable<string> = writable('');
 
 interface HistoryState {
@@ -146,6 +148,7 @@ export {
 	bgscale,
 	pointerPosition,
 	canvasPosition,
+	newBlockPosition,
 	output,
 	history,
 	undo,

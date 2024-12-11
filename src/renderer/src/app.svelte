@@ -335,7 +335,7 @@
 						isContextY = e.clientY;
 					}}
 					use:useCanvas
-					class="relative cursor-grab bg-slate-50 active:cursor-grabbing"
+					class="canvas relative cursor-grab bg-slate-50 active:cursor-grabbing"
 					style="
 						width: {width}px;
 						height: {height}px;

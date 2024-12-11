@@ -2,7 +2,7 @@
 	import Icon from '@iconify/svelte';
 	import { useDrag } from '$lib/utils/useDrag';
 	import type { Block } from '$lib/types';
-	import { output, workspace } from '$lib/stores';
+	import { output, workspace, newBlockPosition } from '$lib/stores';
 	import { ColorPalette } from '$lib/utils/color';
 	import { formatOutput, onDrag, onDragEnd, onDragStart, updateZIndex } from '$lib/utils/block';
 	import { toast } from 'svelte-sonner';
@@ -40,26 +40,40 @@
 	$: isDragging = content.position.x <= 10;
 
 	onMount(() => {
-		let startX = content.position.x + BlockListWidth;
-		let startY = content.position.y;
+		let initialX = content.position.x + BlockListWidth + $newBlockPosition.x;
+        let initialY = content.position.y + $newBlockPosition.y;
+        let startX = 0;
+        let startY = 0;
 		let isDragging = false;
-		let block = $workspace.blocks.get(content.id) || content;
+		let blocks = $workspace.blocks.get(content.id) || content;
 
 		const handlePointerDown = (e: PointerEvent) => {
 			if (e.buttons === 1) {
 				onDragStart(content);
 				isDragging = true;
+				startX = e.clientX;
+                startY = e.clientY;
 				window.addEventListener('pointermove', handlePointerMove);
 				window.addEventListener('pointerup', handlePointerUp);
 			}
 		}
 
 		const handlePointerMove = (e: PointerEvent) => {
+			const canvas = document.querySelector('.canvas');
+			if (canvas?.contains(e.target as Node)) return
 			if (isDragging) {
-				content.position.x = e.clientX - startX;
-				content.position.y = e.clientY - clientY;
-				block.position.x = e.clientX - startX;
-				block.position.y = e.clientY - startY;
+				const newX = e.clientX - initialX;
+                const newY = e.clientY - initialY;
+            
+                content.position.x = newX;
+                content.position.y = newY;
+                blocks.position.x = newX;
+                blocks.position.y = newY;
+            
+                workspace.update((ws) => {
+                    ws.blocks.set(content.id, blocks);
+                    return ws;
+                });
 				onDrag(content);
 			}
 		}
@@ -68,9 +82,13 @@
 			if (isDragging) {
 				onDragEnd(e, content);
 				isDragging = false;
-				window.removeEventListener('pointerdown', handlePointerDown);
+				workspace.update((ws) => {
+					ws.blocks.set(content.id, blocks);
+					return ws;
+				})
 				window.removeEventListener('pointermove', handlePointerMove);
 				window.removeEventListener('pointerup', handlePointerUp);
+				window.removeEventListener('pointerdown', handlePointerDown);
 			}
 		}
 
