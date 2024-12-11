@@ -17,6 +17,8 @@ export const useDrag = (
 	let startY = 0;
 	let block = workspace.get().blocks.get(params.content.id) as Block;
 
+	if (!block) return;
+
 	let initialX = block.position.x;
 	let initialY = block.position.y;
 
@@ -31,6 +33,7 @@ export const useDrag = (
 		startY = event.clientY;
 		element.style.cursor = 'grabbing';
 		params.onStart(event);
+		console.log('drag start', block, workspace.get().blocks);
 
 		window.addEventListener('pointermove', onMouseMove);
 		window.addEventListener('pointerup', onMouseUp);

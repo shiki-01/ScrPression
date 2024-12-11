@@ -1,6 +1,7 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import { workspace } from '$lib/stores/workspace';
+	import { HistoryManager } from '$lib/managers/HistoryManager';
 
 	export let isOpen: boolean = false;
 	export let clientX: number = 0;
@@ -19,7 +20,7 @@
 			<div class="p-2 flex flex-col gap-1 text-sm">
 				<button
 					on:click={() => {
-						workspace.undo();
+						HistoryManager.undo();
 					}}
 					class="w-full flex flex-row gap-4 px-2 py-1 items-center justify-start bg-slate-50 hover:bg-slate-200 transition-colors duration-300"
 				>
@@ -28,7 +29,7 @@
 				</button>
 				<button
 					on:click={() => {
-						workspace.redo();
+						HistoryManager.redo();
 					}}
 					class="w-full flex flex-row gap-4 px-2 py-1 items-center justify-start bg-slate-50 hover:bg-slate-200 transition-colors duration-300"
 				>

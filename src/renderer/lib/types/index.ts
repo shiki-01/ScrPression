@@ -40,14 +40,11 @@ interface WorkspaceState {
 }
 
 interface WorkspaceStore {
+	initialize(workspace: WorkspaceState): void;
 	addBlock(block: Block): void;
-
 	updateBlock(id: string, updates: Partial<Block>): void;
-
 	get(): WorkspaceState;
-
-	updateState(param: (state: WorkspaceState) => WorkspaceState): void;
-
+	update(param: (state: WorkspaceState) => WorkspaceState): void;
 	set(param: {
 		positions: Map<string, { x: number; y: number }>;
 		title: string;

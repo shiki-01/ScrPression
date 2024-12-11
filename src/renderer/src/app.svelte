@@ -11,6 +11,7 @@
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
 	import { Toaster } from 'svelte-sonner';
+	import { HistoryManager } from '$lib/managers/HistoryManager';
 
 	const content: TBlock = {
 		id: '',
@@ -214,6 +215,7 @@
 	onMount(() => {
 		updateCanvasSize($workspace);
 		scroll($canvasPosition);
+		HistoryManager.initialize(workspace)
 	});
 
 	const adjustPosition = () => {
@@ -278,10 +280,10 @@
 					/>
 				</div>
 				<div class="h-full flex flex-row gap-2 text-slate-50 items-center justify-center">
-					<button on:click={workspace.undo}>
+					<button on:click={HistoryManager.undo}>
 					    <Icon icon="ic:round-chevron-left" class="h-6 w-6" />
                     </button>
-					<button on:click={workspace.redo}>
+					<button on:click={HistoryManager.redo}>
 					    <Icon icon="ic:round-chevron-right" class="h-6 w-6" />
 				    </button>
 					<button>

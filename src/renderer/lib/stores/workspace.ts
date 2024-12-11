@@ -1,8 +1,6 @@
 import { createStore, Store } from '$lib/stores/Store';
 import type { Block, BlockContent, WorkspaceState } from '../types';
 
-const MAX_HISTORY = 50;
-
 class WorkspaceStore extends Store<WorkspaceState> {
 	constructor() {
 		super({
@@ -30,43 +28,6 @@ class WorkspaceStore extends Store<WorkspaceState> {
 		});
 	}
 
-	pushHistory() {
-		this.update((ws) => ({
-			...ws,
-			history: [...ws.history.slice(0, ws.currentIndex + 1), structuredClone(ws)].slice(
-				-MAX_HISTORY
-			),
-			currentIndex: Math.min(ws.currentIndex + 1, MAX_HISTORY - 1),
-			title: ws.title
-		}));
-	}
-
-	undo() {
-		this.update((ws) => {
-			if (ws.currentIndex <= 0) return ws;
-			const previousState = ws.history[ws.currentIndex - 1];
-			return {
-				...previousState,
-				history: ws.history,
-				currentIndex: ws.currentIndex - 1,
-				title: ws.title
-			};
-		});
-	}
-
-	redo() {
-		this.update((ws) => {
-			if (ws.currentIndex >= ws.history.length - 1) return ws;
-			const nextState = ws.history[ws.currentIndex + 1];
-			return {
-				...nextState,
-				history: ws.history,
-				currentIndex: ws.currentIndex + 1,
-				title: ws.title
-			};
-		});
-	}
-
 	setTitle(title: string) {
 		this.update((ws) => ({
 			...ws,
@@ -82,10 +43,6 @@ class WorkspaceStore extends Store<WorkspaceState> {
 			title: '',
 			positions: new Map()
 		});
-	}
-
-	updateState(fn: (ws: WorkspaceState) => WorkspaceState) {
-		this.update(fn);
 	}
 
 	updateBlock(id: string, param2: { contents: ('space' | BlockContent)[] }) {

@@ -3,19 +3,17 @@ import { workspace } from '$lib/stores/workspace';
 import type { Block, WorkspaceState } from '$lib/types';
 import { writable, type Writable } from 'svelte/store';
 import { toast } from 'svelte-sonner';
+import { HistoryManager } from '$lib/managers/HistoryManager';
+import { BlockManager } from '$lib/managers/BlockManager';
 
 const timeoutState: Writable<boolean> = writable(false);
 const offset = 40;
 
 const addBlock = (content: Block) => {
 	const newId = Math.random().toString(36).substring(7);
-	let newCon = JSON.parse(JSON.stringify(content));
-	newCon.id = newId;
-	workspace.set({
-		...workspace.get(),
-		blocks: new Map(workspace.get().blocks).set(newId, newCon)
-	});
-	workspace.pushHistory();
+	let newCon = BlockManager.createBlock({...content, id: newId});
+	workspace.blockUpdate(newId, newCon);
+	HistoryManager.push();
 };
 
 const removeBlock = (blockId: string) => {
@@ -45,7 +43,7 @@ const removeBlock = (blockId: string) => {
 
 	workspace.delete(blockId);
 	workspace.set({ ...workspace.get() });
-	workspace.pushHistory();
+	HistoryManager.push();
 };
 
 const overlap = (node: HTMLElement, target: HTMLElement) => {
@@ -99,7 +97,7 @@ const onDragEnd = (
 			toast.success('Block removed');
 		}
 	});
-	workspace.pushHistory();
+	HistoryManager.push();
 };
 
 const updateChildrenPositions = (block: Block) => {

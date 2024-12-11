@@ -1,58 +1,96 @@
-import type { Block, WorkspaceStore } from '$lib/types';
+import type { Block, WorkspaceState } from '$lib/types';
+import type { Store } from '$lib/stores/Store';
 
 export class BlockManager {
-	private store: WorkspaceStore;
-	private connections: Map<string, Set<string>>;
+  static store: Store<WorkspaceState>;
+  private connections: Map<string, Set<string>>;
 
-	constructor(store: WorkspaceStore) {
-		this.store = store;
-		this.connections = new Map();
-	}
+  constructor() {
+    this.connections = new Map();
+  }
 
-	createBlock(template: Block): Block {
-		return {
-			...template,
-			id: crypto.randomUUID(),
-			position: { ...template.position },
-			children: '',
-			parentId: '',
-			depth: 0,
-			zIndex: this.getNextZIndex()
-		};
-	}
+  static createBlock(template: Block): Block {
+    return {
+      ...template,
+      id: crypto.randomUUID(),
+      position: { ...template.position },
+      children: '',
+      parentId: '',
+      depth: 0,
+      zIndex: this.getNextZIndex()
+    };
+  }
 
-	connectBlocks(sourceId: string, targetId: string): boolean {
-		const state = this.store.get();
-		const sourceBlock = state.blocks.get(sourceId);
-		const targetBlock = state.blocks.get(targetId);
+  static connectBlocks(sourceId: string, targetId: string): boolean {
+    const state = this.store.get();
+    const sourceBlock = state.blocks.get(sourceId);
+    const targetBlock = state.blocks.get(targetId);
 
-		if (!sourceBlock || !targetBlock) return false;
-		return !this.wouldCreateCycle(sourceId, targetId);
-	}
+    if (!sourceBlock || !targetBlock) return false;
+    return !this.wouldCreateCycle(sourceId, targetId);
+  }
 
-	updateBlock(id: string, updates: Partial<Block>) {
-		this.store.updateBlock(id, updates);
-	}
+  static updateBlock(id: string, updates: Partial<Block>) {
+    const state = this.store.get();
+    const block = state.blocks.get(id);
+    if (!block) return;
 
-	private getNextZIndex(): number {
-		const blocks = Array.from(this.store.get().blocks.values());
-		return Math.max(...blocks.map((b) => b.zIndex), 0) + 1;
-	}
+    const newBlock = { ...block, ...updates };
+    this.store.update((ws) => {
+      const newBlocks = new Map(ws.blocks);
+      newBlocks.set(id, newBlock);
+      return { ...ws, blocks: newBlocks };
+    });
 
-	private wouldCreateCycle(sourceId: string, targetId: string) {
-		const visited = new Set<string>();
-		const dfs = (blockId: string): '' | boolean => {
-			if (visited.has(blockId)) return false;
-			visited.add(blockId);
+    if (updates.children) {
+      this.updateBlockZIndex(updates.children);
+    }
+  }
 
-			const block = this.store.get().blocks.get(blockId);
-			if (!block) return false;
+  static getNextZIndex(): number {
+    const blocks = Array.from(this.store.get().blocks.values());
+    return Math.max(...blocks.map((b) => b.zIndex), 0) + 1;
+  }
 
-			if (block.id === targetId) return true;
+  static wouldCreateCycle(sourceId: string, targetId: string) {
+    const visited = new Set<string>();
+    const dfs = (blockId: string): '' | boolean => {
+      if (visited.has(blockId)) return false;
+      visited.add(blockId);
 
-			return block.children && dfs(block.children);
-		};
+      const block = this.store.get().blocks.get(blockId);
+      if (!block) return false;
 
-		return dfs(targetId);
-	}
+      if (block.id === targetId) return true;
+
+      return block.children && dfs(block.children);
+    };
+
+    return dfs(targetId);
+  }
+
+  static updateBlockZIndex(children: string) {
+    const state = this.store.get();
+    const sortedBlocks = new Map(Array.from(state.blocks.entries()).sort(([, a], [, b]) => a.zIndex - b.zIndex));
+    let currentIndex = 0;
+
+    const updateBlockZIndex = (blockId: string) => {
+      const block = state.blocks.get(blockId);
+      if (!block) return;
+
+      block.zIndex = currentIndex++;
+      this.updateBlock(block.id, block);
+
+      if (block.children) {
+        updateBlockZIndex(block.children);
+      }
+    };
+
+    updateBlockZIndex(children);
+    this.store.set({ ...state, blocks: sortedBlocks });
+  }
 }
+
+// BlockManager.store を初期化するコード
+import { workspace } from '$lib/stores/workspace';
+BlockManager.store = workspace;

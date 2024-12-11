@@ -1,19 +1,19 @@
 export class EventManager {
-	private handlers = new Map<string, Set<Function>>();
+ private static handlers = new Map<string, Set<Function>>();
 
-	emit(event: string, data?: any) {
-		const handlers = this.handlers.get(event);
-		handlers?.forEach((handler) => handler(data));
-	}
+ static emit(event: string, data?: any) {
+  const handlers = this.handlers.get(event);
+  handlers?.forEach((handler) => handler(data));
+ }
 
-	on(event: string, handler: Function) {
-		if (!this.handlers.has(event)) {
-			this.handlers.set(event, new Set());
-		}
-		this.handlers.get(event)!.add(handler);
-	}
+ static on(event: string, handler: Function) {
+  if (!EventManager.handlers.has(event)) {
+   EventManager.handlers.set(event, new Set());
+  }
+  EventManager.handlers.get(event)!.add(handler);
+ }
 
-	off(event: string, handler: Function) {
-		this.handlers.get(event)?.delete(handler);
-	}
+ static off(event: string, handler: Function) {
+  EventManager.handlers.get(event)?.delete(handler);
+ }
 }
