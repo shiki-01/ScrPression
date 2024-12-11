@@ -1,34 +1,60 @@
 interface ConnectionPoint {
-  input: boolean;
-  output: boolean;
+	input: boolean;
+	output: boolean;
 }
 
 interface BlockContent {
-  id: string;
-  type: 'normal' | 'container' | 'value';
-  text: string;
-  inputType: string;
-  value: string ;
+	id: string;
+	type: 'normal' | 'container' | 'value';
+	text: string;
+	inputType: string;
+	value: string;
 }
 
 interface Block {
-  id: string;
-  type: 'normal' | 'container' | 'value' | 'flag';
-  color: 'blue' | 'red' | 'green' | 'yellow' | 'orange' | 'cyan';
-  title: string;
-  output: string;
-  contents: (BlockContent | 'space')[];
-  position: { x: number; y: number };
-  connections: ConnectionPoint;
-  children: string;
-  parentId: string;
-  depth: number;
-  zIndex: number;
+	id: string;
+	type: 'normal' | 'container' | 'value' | 'flag';
+	color: 'blue' | 'red' | 'green' | 'yellow' | 'orange' | 'cyan';
+	title: string;
+	output: string;
+	contents: (BlockContent | 'space')[];
+	position: { x: number; y: number };
+	connections: ConnectionPoint;
+	children: string;
+	parentId: string;
+	depth: number;
+	zIndex: number;
+}
+
+interface HistoryState {
+	blocks: Map<string, Block>;
+	positions: Map<string, { x: number; y: number }>;
 }
 
 interface WorkspaceState {
-  blocks: Map<string, Block>;
-  title: string;
+	positions: Map<string, { x: number; y: number }>;
+	title: string;
+	blocks: Map<string, Block>;
+	history: HistoryState[];
+	currentIndex: number;
 }
 
-export type { BlockContent, Block, ConnectionPoint, WorkspaceState };
+interface WorkspaceStore {
+	addBlock(block: Block): void;
+
+	updateBlock(id: string, updates: Partial<Block>): void;
+
+	get(): WorkspaceState;
+
+	updateState(param: (state: WorkspaceState) => WorkspaceState): void;
+
+	set(param: {
+		positions: Map<string, { x: number; y: number }>;
+		title: string;
+		blocks: Map<string, Block>;
+		history: HistoryState[];
+		currentIndex: number;
+	}): void;
+}
+
+export type { BlockContent, Block, ConnectionPoint, HistoryState, WorkspaceState, WorkspaceStore };

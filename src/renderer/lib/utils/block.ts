@@ -1,4 +1,5 @@
-import { blockspace, output, pushUndo, workspace } from '$lib/stores';
+import { blockspace, output } from '$lib/stores';
+import { workspace } from '$lib/stores/workspace';
 import type { Block, WorkspaceState } from '$lib/types';
 import { writable, type Writable } from 'svelte/store';
 import { toast } from 'svelte-sonner';
@@ -14,8 +15,7 @@ const addBlock = (content: Block) => {
 		...workspace.get(),
 		blocks: new Map(workspace.get().blocks).set(newId, newCon)
 	});
-	console.log(workspace.get());
-	pushUndo();
+	workspace.pushHistory();
 };
 
 const removeBlock = (blockId: string) => {
@@ -40,12 +40,12 @@ const removeBlock = (blockId: string) => {
 	removeChildren(blockId);
 
 	workspace.get().blocks.forEach((b) => {
-		updateBlockPositions(workspace.get(), b.id);
+		updateBlockPositions(b.id);
 	});
 
 	workspace.delete(blockId);
 	workspace.set({ ...workspace.get() });
-	pushUndo();
+	workspace.pushHistory();
 };
 
 const overlap = (node: HTMLElement, target: HTMLElement) => {
@@ -63,13 +63,8 @@ const onDrag = (content: Block) => {
 	const block = workspace.get().blocks.get(content.id) as Block;
 	if (!block) return;
 
-	updateChildrenPositions(workspace.get(), block);
-	updateZIndex(workspace.get(), content.id);
-
-	block.position.x = content.position.x;
-	block.position.y = content.position.y;
-
-	workspace.blockUpdate(content.id, block);
+	updateChildrenPositions(block);
+	updateZIndex(content.id);
 
 	handleConnections(content);
 };
@@ -77,6 +72,7 @@ const onDrag = (content: Block) => {
 const onDragStart = (content: Block) => {
 	const block = workspace.get().blocks.get(content.id) as Block;
 	if (!block) return;
+	console.log('drag start', block, workspace.get().blocks);
 	if (block.parentId) {
 		timeoutState.set(true);
 		const parentBlock = workspace.get().blocks.get(block.parentId);
@@ -89,55 +85,61 @@ const onDragStart = (content: Block) => {
 	workspace.blockUpdate(content.id, block);
 };
 
-const onDragEnd = (event: { clientX: number; clientY: number }, content: Block) => {
+const onDragEnd = (
+	event: { clientX: number; clientY: number },
+	content: Block,
+	strict: boolean = true
+) => {
 	timeoutState.set(false);
 
+	if (!strict) return;
 	document.elementsFromPoint(event.clientX, event.clientY).forEach((element) => {
-		if (element.classList.contains('trash')) {
+		if (element.classList.contains('trash') || element.classList.contains('block-list')) {
 			removeBlock(content.id);
 			toast.success('Block removed');
 		}
 	});
-	pushUndo();
+	workspace.pushHistory();
 };
 
-const updateChildrenPositions = (ws: WorkspaceState, block: Block) => {
+const updateChildrenPositions = (block: Block) => {
 	let currentBlock = block;
 	let currentOffset = offset;
 
 	while (currentBlock.children) {
-		const childBlock = ws.blocks.get(currentBlock.children);
+		const childBlock = workspace.get().blocks.get(currentBlock.children);
 		if (!childBlock) break;
 
 		childBlock.position = {
 			x: block.position.x,
 			y: block.position.y + currentOffset
 		};
-		ws.blocks.set(childBlock.id, childBlock);
+
+		workspace.blockUpdate(childBlock.id, childBlock);
 		currentBlock = childBlock;
 		currentOffset += offset;
 	}
 };
 
-const updateZIndex = (ws: WorkspaceState, blockId: string) => {
-	const block = ws.blocks.get(blockId);
-	if (!block) return;
+const updateZIndex = (blockId: string) => {
+	const blocks = Array.from(workspace.get().blocks.entries());
+	const sortedBlocks = new Map(blocks.sort((a, b) => a[1].zIndex - b[1].zIndex));
 
-	ws.blocks.forEach((b) => {
-		b.zIndex = 0;
-		ws.blocks.set(b.id, b);
-	});
+	let currentIndex = 1;
+	const updateBlockZIndex = (id: string) => {
+		const block = sortedBlocks.get(id);
+		if (!block) return;
 
-	let zIndex = 1;
-	const setZIndex = (id: string) => {
-		const b = ws.blocks.get(id);
-		if (!b) return;
-		b.zIndex = zIndex++;
-		ws.blocks.set(id, b);
-		if (b.children) setZIndex(b.children);
+		block.zIndex = currentIndex++;
+		workspace.blockUpdate(id, block);
+
+		if (block.children) {
+			updateBlockZIndex(block.children);
+		}
 	};
 
-	setZIndex(blockId);
+	updateBlockZIndex(blockId);
+	workspace.set({ ...workspace.get(), blocks: sortedBlocks });
 };
 
 const findRootBlock = (
@@ -157,68 +159,59 @@ const findRootBlock = (
 	return findRootBlock(ws, block.parentId, visited);
 };
 
-const updateBlockPositions = (ws: WorkspaceState, blockId: string, depth: number = 0) => {
-	const block = ws.blocks.get(blockId);
+const updateBlockPositions = (blockId: string) => {
+	const block = workspace.get().blocks.get(blockId);
 	if (!block) return;
 
-	const offsetY = offset + depth * 2;
+	const updateChildrenPositions = (parentId: string, depth: number = 0) => {
+		const parent = workspace.get().blocks.get(parentId);
+		if (!parent?.children) return;
 
-	if (block.children) {
-		const childBlock = ws.blocks.get(block.children);
-		if (childBlock) {
-			childBlock.position = {
-				x: block.position.x,
-				y: block.position.y + offsetY
-			};
-			childBlock.depth = depth + 1;
-			ws.blocks.set(block.children, childBlock);
+		const child = workspace.get().blocks.get(parent.children);
+		if (!child) return;
 
-			updateBlockPositions(ws, block.children, depth + 1);
-		}
-	}
-};
+		child.position = {
+			x: parent.position.x,
+			y: parent.position.y + 40 * (depth + 1)
+		};
+		child.depth = depth + 1;
 
-const handleBlockConnection = (ws: WorkspaceState, sourceId: string, targetId: string) => {
-	const sourceBlock = ws.blocks.get(sourceId);
-	const targetBlock = ws.blocks.get(targetId);
-
-	if (!sourceBlock || !targetBlock) return false;
-
-	let timeout = false;
-	timeoutState.subscribe((state) => {
-		timeout = state;
-	})();
-
-	if (timeout || sourceBlock.children || targetId === sourceId) return false;
-
-	console.log('connecting', sourceBlock, targetBlock);
-	const checkCircularReference = (blockId: string, targetId: string): boolean => {
-		let current: Block | undefined = ws.blocks.get(blockId);
-		while (current) {
-			if (current.id === targetId) return true;
-			current = current.parentId ? ws.blocks.get(current.parentId) : undefined;
-		}
-		return false;
+		workspace.blockUpdate(child.id, child);
+		updateChildrenPositions(child.id, depth + 1);
 	};
 
-	if (checkCircularReference(targetId, sourceId)) return false;
+	updateChildrenPositions(blockId);
+	workspace.set({ ...workspace.get() });
+};
+
+const handleBlockConnection = (sourceId: string, targetId: string) => {
+	const sourceBlock = structuredClone(workspace.get().blocks.get(sourceId));
+	const targetBlock = structuredClone(workspace.get().blocks.get(targetId));
+
+	if (!sourceBlock || !targetBlock) return false;
+	if (sourceBlock.children || targetId === sourceId) return false;
 
 	if (targetBlock.parentId) {
-		const oldParent = ws.blocks.get(targetBlock.parentId);
+		const oldParent = workspace.get().blocks.get(targetBlock.parentId);
 		if (oldParent) {
 			oldParent.children = '';
-			ws.blocks.set(oldParent.id, oldParent);
+			workspace.blockUpdate(oldParent.id, oldParent);
 		}
 	}
 
 	sourceBlock.children = targetId;
 	targetBlock.parentId = sourceId;
 
-	updateBlockPositions(ws, sourceId);
-	updateZIndex(ws, sourceId);
+	targetBlock.position = {
+		x: sourceBlock.position.x,
+		y: sourceBlock.position.y + offset
+	};
 
-	ws.blocks.set(sourceId, sourceBlock);
-	ws.blocks.set(targetId, targetBlock);
+	workspace.blockUpdate(sourceId, sourceBlock);
+	workspace.blockUpdate(targetId, targetBlock);
+
+	updateBlockPositions(sourceId);
+	updateZIndex(sourceId);
 
 	return true;
 };
@@ -240,7 +233,8 @@ const handleConnections = (content: Block) => {
 			if (!targetID || targetID === content.id) return;
 
 			if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
-				handleBlockConnection(workspace.get(), targetID, content.id);
+				handleBlockConnection(targetID, content.id);
+				console.log('connected', targetID, content.id);
 			}
 		});
 	});

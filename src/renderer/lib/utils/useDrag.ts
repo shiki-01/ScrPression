@@ -1,4 +1,4 @@
-import { workspace } from '$lib/stores';
+import { workspace } from '$lib/stores/workspace';
 import type { Block } from '$lib/types';
 
 export const useDrag = (
@@ -15,9 +15,10 @@ export const useDrag = (
 	let isDragging = false;
 	let startX = 0;
 	let startY = 0;
-	let initialX = params.content.position.x;
-	let initialY = params.content.position.y;
-	let block = params.content;
+	let block = workspace.get().blocks.get(params.content.id) as Block;
+
+	let initialX = block.position.x;
+	let initialY = block.position.y;
 
 	const cleanup = () => {
 		window.removeEventListener('pointermove', onMouseMove);
@@ -36,7 +37,6 @@ export const useDrag = (
 	};
 
 	const onMouseMove = (event: PointerEvent) => {
-		block = workspace.get().blocks.get(params.content.id) as Block;
 		if (!isDragging) return;
 
 		event.preventDefault();
@@ -56,10 +56,11 @@ export const useDrag = (
 			}
 		}
 
-		params.position.x = newX;
-		params.position.y = newY;
 		block.position.x = newX;
 		block.position.y = newY;
+
+		workspace.blockUpdate(params.content.id, block);
+
 		params.onDrag(event);
 	};
 

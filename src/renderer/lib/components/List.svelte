@@ -1,7 +1,8 @@
 <script lang="ts">
 	import Icon from '@iconify/svelte';
 	import type { Block } from '$lib/types';
-	import { output, workspace, newBlockPosition } from '$lib/stores';
+	import { newBlockPosition, output } from '$lib/stores';
+	import { workspace } from '$lib/stores/workspace';
 	import { ColorPalette } from '$lib/utils/color';
 	import { addBlock, formatOutput } from '$lib/utils/block';
 	import { toast } from 'svelte-sonner';

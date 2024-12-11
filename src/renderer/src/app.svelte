@@ -4,9 +4,9 @@
 	import ContextMenu from '$lib/components/ContextMenu.svelte';
 	import Block from '$lib/components/Block.svelte';
 	import List from '$lib/components/List.svelte';
-	import Value from '$lib/components/Value.svelte';
 	import type { Block as TBlock, WorkspaceState } from '$lib/types';
-	import { bgscale, blockspace, canvasPosition, output, pointerPosition, redo, undo, workspace } from '$lib/stores';
+	import { bgscale, blockspace, canvasPosition, output, pointerPosition } from '$lib/stores';
+	import { workspace } from '$lib/stores/workspace';
 	import { useCanvas } from '$lib/utils/useCanvas';
 	import { onMount } from 'svelte';
 	import { fly } from 'svelte/transition';
@@ -278,10 +278,10 @@
 					/>
 				</div>
 				<div class="h-full flex flex-row gap-2 text-slate-50 items-center justify-center">
-				    <button on:click={undo}>
+					<button on:click={workspace.undo}>
 					    <Icon icon="ic:round-chevron-left" class="h-6 w-6" />
                     </button>
-				    <button on:click={redo}>
+					<button on:click={workspace.redo}>
 					    <Icon icon="ic:round-chevron-right" class="h-6 w-6" />
 				    </button>
 					<button>
@@ -345,13 +345,14 @@
 						will-change: transform;
 					"
 				>
-					{#each $workspace.blocks as [_, block]}
-						{#if block.color === 'blue' || block.color === 'red' || block.color === 'orange' || block.color === 'yellow'}
-							<Block content={block} />
-						{:else if block.color === 'green'}
-							<Value content={block} />
+					{#each Array.from($workspace.blocks.entries())
+						.sort((a, b) => a[1].zIndex - b[1].zIndex) as [id, block]}
+						{#if block.color === 'blue' || block.color === 'red' ||
+						block.color === 'orange' || block.color === 'yellow'}
+							<Block {id} />
 						{/if}
 					{/each}
+
 				</button>
 				<div class="trash absolute bottom-2 right-2 text-slate-400 hover:text-slate-500 transition-colors duration-300">
 					<Icon class="h-10 w-10" icon="ic:round-delete" />
