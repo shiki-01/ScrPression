@@ -210,12 +210,10 @@
 	};
 
 	$: scroll($canvasPosition);
-	//$: updateCanvasSize($workspace)
 
 	onMount(() => {
 		updateCanvasSize($workspace);
 		scroll($canvasPosition);
-		//HistoryManager.initialize(workspace)
 	});
 
 	const adjustPosition = () => {
@@ -237,22 +235,18 @@
 
 	let isAdd: boolean = false;
 
-	let blocks: [string, BlockType][] = [];
+	let blocks: Writable<[string, BlockType][]> = writable([]);
 
-	onMount(() => {
-		const blockStore = BlockStore.getInstance();
-		const unsubscribe = blockStore.subscribeBlocks((value) => {
-			blocks = Array.from(value.entries()).sort((a, b) => a[1].zIndex - b[1].zIndex);
-		});
-
-		return () => unsubscribe();
-	});
+	const blockStore = BlockStore.getInstance();
+	
+	$: blockStore.subscribeBlocks((value) => {
+        blocks.set(Array.from(value.entries()));
+    });
 
 	const parseClipboardContent = (content: string) => {
-		// クリップボードの内容をJSON形式に変換
 		const jsonString = content
-			.replace(/(\w+):/g, '"$1":') // キーをクォート
-			.replace(/'/g, '"'); // シングルクォートをダブルクォートに変換
+			.replace(/(\w+):/g, '"$1":')
+			.replace(/'/g, '"');
 		return JSON.parse(jsonString);
 	};
 </script>
@@ -374,7 +368,7 @@
 						will-change: transform;
 					"
 				>
-					{#each blocks as [id, block]}
+					{#each $blocks as [id, _block]}
 						<Block {id} />
 					{/each}
 				</button>

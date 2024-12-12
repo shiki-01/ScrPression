@@ -1,21 +1,23 @@
-import { workspace } from '$lib/stores/workspace';
-import type { Block } from '$lib/types';
+import { BlockStore } from '$lib/block/store';
+import type { BlockType } from '$lib/block/type';
 
 export const useDrag = (
 	element: HTMLElement,
 	params: {
 		bounds: 'parent' | 'body';
 		position: { x: number; y: number };
-		content: Block;
+		content: BlockType;
 		onDrag: (event: PointerEvent) => void;
 		onStart: (event: PointerEvent) => void;
 		onEnd: (event: PointerEvent) => void;
 	}
 ) => {
+	const blockStore = BlockStore.getInstance();
+
 	let isDragging = false;
 	let startX = 0;
 	let startY = 0;
-	let block = workspace.get().blocks.get(params.content.id) as Block;
+	let block = blockStore.getBlock(params.content.id) as BlockType;
 
 	if (!block) return;
 
@@ -33,7 +35,6 @@ export const useDrag = (
 		startY = event.clientY;
 		element.style.cursor = 'grabbing';
 		params.onStart(event);
-		console.log('drag start', block, workspace.get().blocks);
 
 		window.addEventListener('pointermove', onMouseMove);
 		window.addEventListener('pointerup', onMouseUp);
@@ -59,12 +60,12 @@ export const useDrag = (
 			}
 		}
 
-		block.position.x = newX;
-		block.position.y = newY;
+		params.content.position.x = newX;
+        params.content.position.y = newY;
 
-		workspace.blockUpdate(params.content.id, block);
+        blockStore.updateBlock(params.content.id, { position: { x: newX, y: newY } });
 
-		params.onDrag(event);
+        params.onDrag(event);
 	};
 
 	const onMouseUp = (event: PointerEvent) => {
