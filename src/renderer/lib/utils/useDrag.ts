@@ -61,11 +61,11 @@ export const useDrag = (
 		}
 
 		params.content.position.x = newX;
-        params.content.position.y = newY;
+		params.content.position.y = newY;
 
-        blockStore.updateBlock(params.content.id, { position: { x: newX, y: newY } });
+		blockStore.updateBlock(params.content.id, { position: { x: newX, y: newY } });
 
-        params.onDrag(event);
+		params.onDrag(event);
 	};
 
 	const onMouseUp = (event: PointerEvent) => {

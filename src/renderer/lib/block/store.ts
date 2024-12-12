@@ -3,7 +3,7 @@ import type { BlockType } from './type';
 
 class BlockStore {
     private static instance: BlockStore;
-    private _blocks = writable<Map<string, BlockType>>(new Map());
+    private readonly _blocks = writable<Map<string, BlockType>>(new Map());
     subscribe: (this: void, run: import("svelte/store").Subscriber<Map<string, BlockType>>, invalidate?: ((value?: Map<string, BlockType>) => void) | undefined) => import("svelte/store").Unsubscriber;
 
     private constructor() {

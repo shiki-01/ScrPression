@@ -238,10 +238,10 @@
 	let blocks: Writable<[string, BlockType][]> = writable([]);
 
 	const blockStore = BlockStore.getInstance();
-	
+
 	$: blockStore.subscribeBlocks((value) => {
-        blocks.set(Array.from(value.entries()));
-    });
+		blocks.set(Array.from(value.entries()));
+	});
 
 	const parseClipboardContent = (content: string) => {
 		const jsonString = content
