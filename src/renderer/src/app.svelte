@@ -215,7 +215,7 @@
 	onMount(() => {
 		updateCanvasSize($workspace);
 		scroll($canvasPosition);
-		HistoryManager.initialize(workspace)
+		//HistoryManager.initialize(workspace)
 	});
 
 	const adjustPosition = () => {
