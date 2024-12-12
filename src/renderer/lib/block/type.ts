@@ -1,32 +1,49 @@
 type Position = { x: number, y: number };
 
-interface ValueContent {
-    text: string;
-    placeholder: string;
+type ValueContent = {
+    title: string;
     value: string;
+    placeholder: string;
 }
 
-interface SeparatorContent {
-    type: 'space' | 'line';
+type SeparatorContent = {
+   type: 'line' | 'space';
 }
 
-interface SelectContent {
-    type: 'multi' | 'single';
-    options: {
-        id: string;
-        text: string;
-    }[];
+type SelectContent = {
+    title: string;
+    options: string[];
 }
 
-interface BlockContent {
+interface BaseBlockContent<T,C> {
     id: string;
-    type: 'value' | 'separator' | 'select';
-    content: ValueContent | SeparatorContent | SelectContent;
+    type: T;
+    content: C;
 }
+
+interface ValueBlockContent extends BaseBlockContent<'value', ValueContent> {
+    id: string;
+    type: 'value';
+    content: ValueContent;
+}
+
+interface SeparatorBlockContent extends BaseBlockContent<'separator', SeparatorContent> {
+    id: string;
+    type: 'separator';
+    content: SeparatorContent;
+}
+
+interface SelectBlockContent extends BaseBlockContent<'select', SelectContent> {
+    id: string;
+    type: 'select';
+    content: SelectContent;
+}
+
+type BlockContent = ValueBlockContent | SeparatorBlockContent | SelectBlockContent;
 
 interface BlockType {
     id: string;
-    type: 'flag' | 'block' | 'loop' | 'value';
+    type: 'flag' | ('move' | 'composition' | 'works') | 'loop' | 'value';
     title: string;
     output: string;
     position: Position;
@@ -34,7 +51,7 @@ interface BlockType {
         input: Position | null;
         output: Position | null;
     };
-    content: BlockContent[];
+    contents: BlockContent[];
     childId: string;
     parentId: string;
     depth: number;
@@ -43,9 +60,6 @@ interface BlockType {
 
 export type {
     Position,
-    ValueContent,
-    SeparatorContent,
-    SelectContent,
     BlockContent,
     BlockType
 }

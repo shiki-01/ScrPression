@@ -1,7 +1,7 @@
 import type { BlockType, Position } from "./type";
 
 class Block {
-    private _block: BlockType;
+    private readonly _block: BlockType;
 
     constructor(block: BlockType) {
         this._block = block;
@@ -43,3 +43,5 @@ class Block {
         this._block.depth = depth;
     }
 }
+
+export { Block };

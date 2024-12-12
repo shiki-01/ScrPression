@@ -5,6 +5,7 @@ import { writable, type Writable } from 'svelte/store';
 import { toast } from 'svelte-sonner';
 import { HistoryManager } from '$lib/managers/HistoryManager';
 import { BlockManager } from '$lib/managers/BlockManager';
+import type { BlockType } from '$lib/block/type';
 
 const timeoutState: Writable<boolean> = writable(false);
 const offset = 40;
@@ -57,7 +58,7 @@ const overlap = (node: HTMLElement, target: HTMLElement) => {
 	);
 };
 
-const onDrag = (content: Block) => {
+const onDrag = (content: BlockType) => {
 	const block = workspace.get().blocks.get(content.id) as Block;
 	if (!block) return;
 
@@ -214,7 +215,7 @@ const handleBlockConnection = (sourceId: string, targetId: string) => {
 	return true;
 };
 
-const handleConnections = (content: Block) => {
+const handleConnections = (content: BlockType) => {
 	let space: HTMLElement | null = null;
 	blockspace.subscribe((blockspace) => {
 		space = blockspace;

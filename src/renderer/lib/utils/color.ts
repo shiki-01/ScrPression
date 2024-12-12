@@ -55,4 +55,6 @@ const ColorPalette = {
   },
 };
 
-export { ColorPalette };
+type ColorKey = keyof typeof ColorPalette;
+
+export { ColorPalette, type ColorKey };
