@@ -241,6 +241,7 @@
 
 	$: blockStore.subscribeBlocks((value) => {
 		blocks.set(Array.from(value.entries()));
+		console.log('blocks', $blocks);
 	});
 
 	const parseClipboardContent = (content: string) => {

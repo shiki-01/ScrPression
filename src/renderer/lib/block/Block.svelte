@@ -8,7 +8,7 @@
 	import { onMount } from 'svelte';
 	import { useDrag } from '$lib/utils/useDrag';
 	import { output } from '$lib/stores';
-	import { onDrag, onDragStart, onDragEnd, formatOutput } from '$lib/utils/block';
+	import { formatOutput, onDrag, onDragEnd, onDragStart } from '$lib/utils/block';
 
 	export let id: string;
 
@@ -63,6 +63,7 @@
         },
         onDrag: () => {
 						onDrag(content);
+						console.log(content)
         },
     }}
 >

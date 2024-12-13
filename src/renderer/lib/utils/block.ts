@@ -65,12 +65,10 @@ const onDragStart = (content: BlockType) => {
 		timeoutState.set(true);
 		const parentBlock = blockStore.getBlock(block.parentId) as BlockType;
 		if (parentBlock) {
-			parentBlock.childId = '';
-			blockStore.updateBlock(parentBlock.id, parentBlock);
+			blockStore.updateBlock(parentBlock.id, { childId: '' });
 		}
-		block.parentId = '';
+		blockStore.updateBlock(block.id, { parentId: '' });
 	}
-	blockStore.updateBlock(block.id, block);
 };
 
 const onDragEnd = (
@@ -97,7 +95,9 @@ const updateChildrenPositions = (block: BlockType) => {
 		const childBlock = blockStore.getBlock(currentBlock.childId) as BlockType;
 		if (!childBlock) break;
 
-		blockStore.updateBlock(childBlock.id, { position: { x: currentBlock.position.x, y: currentBlock.position.y + currentOffset } });
+		blockStore.updateBlock(childBlock.id, {
+			position: { x: currentBlock.position.x, y: currentBlock.position.y + currentOffset }
+		});
 		currentBlock = childBlock;
 		currentOffset += offset;
 	}
@@ -123,10 +123,7 @@ const updateZIndex = (blockId: string) => {
 	updateBlockZIndex(blockId);
 };
 
-const findRootBlock = (
-	blockId: string,
-	visited: Set<string> = new Set()
-): BlockType | null => {
+const findRootBlock = (blockId: string, visited: Set<string> = new Set()): BlockType | null => {
 	if (visited.has(blockId)) return null;
 
 	const block = blockStore.getBlock(blockId);
@@ -198,7 +195,12 @@ const handleConnections = (content: BlockType) => {
 		space = blockspace;
 	});
 
-	if (!space) return;
+	let isTimeout: boolean = false;
+	timeoutState.subscribe((state) => {
+		isTimeout = state;
+	});
+
+	if (!space || isTimeout) return;
 
 	const inputs = (space as HTMLElement).querySelectorAll('.input');
 	const outputs = (space as HTMLElement).querySelectorAll('.output');
@@ -210,7 +212,6 @@ const handleConnections = (content: BlockType) => {
 
 			if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
 				handleBlockConnection(targetID, content.id);
-				console.log('connected', content);
 			}
 		});
 	});

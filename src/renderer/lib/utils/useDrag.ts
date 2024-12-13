@@ -18,6 +18,7 @@ export const useDrag = (
 	let startX = 0;
 	let startY = 0;
 	let block = blockStore.getBlock(params.content.id) as BlockType;
+	console.log('block', block);
 
 	if (!block) return;
 
@@ -59,9 +60,6 @@ export const useDrag = (
 				newY = Math.max(0, Math.min(newY, maxY));
 			}
 		}
-
-		params.content.position.x = newX;
-		params.content.position.y = newY;
 
 		blockStore.updateBlock(params.content.id, { position: { x: newX, y: newY } });
 
