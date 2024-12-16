@@ -89,17 +89,15 @@ const onDragEnd = (
 
 const updateChildrenPositions = (block: BlockType) => {
 	let currentBlock = block;
-	let currentOffset = offset;
 
 	while (currentBlock.childId) {
 		const childBlock = blockStore.getBlock(currentBlock.childId) as BlockType;
 		if (!childBlock) break;
 
 		blockStore.updateBlock(childBlock.id, {
-			position: { x: currentBlock.position.x, y: currentBlock.position.y + currentOffset }
+			position: { x: currentBlock.position.x, y: currentBlock.position.y + offset },
 		});
 		currentBlock = childBlock;
-		currentOffset += offset;
 	}
 };
 

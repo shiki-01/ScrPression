@@ -52,20 +52,21 @@
 	style="z-index: {content.zIndex}; top: {content.position.y}px; left: {content.position.x}px;"
 	tabindex="0"
 	use:useDrag={{
-        bounds: 'parent',
-        position: content.position,
-        content: content,
-        onStart: () => {
-						onDragStart(content);
-        },
-        onEnd: (e) => {
-						onDragEnd(e, content);
-        },
-        onDrag: () => {
-						onDrag(content);
-						console.log(content)
-        },
-    }}
+		bounds: 'parent',
+		position: content.position,
+		content: content,
+		onStart: () => {
+			onDragStart(content);
+		},
+		onEnd: (e) => {
+			onDragEnd(e, content);
+		},
+		onDrag: () => {
+			onDrag(content);
+			console.log(content)
+		},
+		initialDrag: true
+	}}
 >
 	<div
 		class="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"

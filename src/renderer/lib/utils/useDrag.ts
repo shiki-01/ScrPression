@@ -2,88 +2,98 @@ import { BlockStore } from '$lib/block/store';
 import type { BlockType } from '$lib/block/type';
 
 export const useDrag = (
-	element: HTMLElement,
-	params: {
-		bounds: 'parent' | 'body';
-		position: { x: number; y: number };
-		content: BlockType;
-		onDrag: (event: PointerEvent) => void;
-		onStart: (event: PointerEvent) => void;
-		onEnd: (event: PointerEvent) => void;
-	}
+ element: HTMLElement,
+ params: {
+  bounds: 'parent' | 'body';
+  position: { x: number; y: number };
+  content: BlockType;
+  onDrag: (event: PointerEvent) => void;
+  onStart: (event: PointerEvent) => void;
+  onEnd: (event: PointerEvent) => void;
+  initialDrag: boolean;
+ }
 ) => {
-	const blockStore = BlockStore.getInstance();
+ const blockStore = BlockStore.getInstance();
 
-	let isDragging = false;
-	let startX = 0;
-	let startY = 0;
-	let block = blockStore.getBlock(params.content.id) as BlockType;
-	console.log('block', block);
+ let isDragging = params.initialDrag || false;
+ let startX = 0;
+ let startY = 0;
+ let block = blockStore.getBlock(params.content.id) as BlockType;
 
-	if (!block) return;
+ if (!block) return;
 
-	let initialX = block.position.x;
-	let initialY = block.position.y;
+ let initialX = block.position.x;
+ let initialY = block.position.y;
 
-	const cleanup = () => {
-		window.removeEventListener('pointermove', onMouseMove);
-		window.removeEventListener('pointerup', onMouseUp);
-	};
+ const cleanup = () => {
+  window.removeEventListener('pointermove', onMouseMove);
+  window.removeEventListener('pointerup', onMouseUp);
+ };
 
-	const onMouseDown = (event: PointerEvent) => {
-		isDragging = true;
-		startX = event.clientX;
-		startY = event.clientY;
-		element.style.cursor = 'grabbing';
-		params.onStart(event);
+ const onMouseDown = (event: PointerEvent) => {
+  isDragging = true;
+  startX = event.clientX;
+  startY = event.clientY;
+  element.style.cursor = 'grabbing';
+  params.onStart(event);
 
-		window.addEventListener('pointermove', onMouseMove);
-		window.addEventListener('pointerup', onMouseUp);
-	};
+  block = blockStore.getBlock(params.content.id) as BlockType;
+  initialX = block.position.x;
+  initialY = block.position.y;
 
-	const onMouseMove = (event: PointerEvent) => {
-		if (!isDragging) return;
+  window.addEventListener('pointermove', onMouseMove);
+  window.addEventListener('pointerup', onMouseUp);
+ };
 
-		event.preventDefault();
-		const deltaX = event.clientX - startX;
-		const deltaY = event.clientY - startY;
+ const onMouseMove = (event: PointerEvent) => {
+  if (!isDragging) return;
 
-		let newX = initialX + deltaX;
-		let newY = initialY + deltaY;
+  event.preventDefault();
+  const deltaX = event.clientX - startX;
+  const deltaY = event.clientY - startY;
 
-		if (params.bounds === 'parent') {
-			const parentRect = element.parentElement?.getBoundingClientRect();
-			if (parentRect) {
-				const maxX = parentRect.width - element.offsetWidth;
-				const maxY = parentRect.height - element.offsetHeight;
-				newX = Math.min(newX, maxX);
-				newY = Math.max(0, Math.min(newY, maxY));
-			}
-		}
+  let newX = initialX + deltaX;
+  let newY = initialY + deltaY;
 
-		blockStore.updateBlock(params.content.id, { position: { x: newX, y: newY } });
+  if (params.bounds === 'parent') {
+   const parentRect = element.parentElement?.getBoundingClientRect();
+   if (parentRect) {
+    const maxX = parentRect.width - element.offsetWidth;
+    const maxY = parentRect.height - element.offsetHeight;
+    newX = Math.min(newX, maxX);
+    newY = Math.max(0, Math.min(newY, maxY));
+   }
+  }
 
-		params.onDrag(event);
-	};
+  blockStore.updateBlock(params.content.id, { position: { x: newX, y: newY } });
 
-	const onMouseUp = (event: PointerEvent) => {
-		if (!isDragging) return;
+  params.onDrag(event);
+ };
 
-		isDragging = false;
-		initialX = params.position.x;
-		initialY = params.position.y;
-		element.style.cursor = 'grab';
-		params.onEnd(event);
-		cleanup();
-	};
+ const onMouseUp = (event: PointerEvent) => {
+  if (!isDragging) return;
 
-	element.style.cursor = 'grab';
-	element.addEventListener('pointerdown', onMouseDown);
+  isDragging = false;
+  initialX = block.position.x;
+  initialY = block.position.y;
+  element.style.cursor = 'grab';
+  params.onEnd(event);
+  cleanup();
+ };
 
-	return {
-		destroy() {
-			element.removeEventListener('pointerdown', onMouseDown);
-			cleanup();
-		}
-	};
+ element.style.cursor = 'grab';
+ element.addEventListener('pointerdown', onMouseDown);
+
+ if (params.initialDrag) {
+  onMouseDown(new PointerEvent('pointerdown', { bubbles: true, cancelable: true, view: window }));
+  initialX = block.position.x;
+  initialY = block.position.y;
+ }
+
+ return {
+  destroy() {
+   element.removeEventListener('pointerdown', onMouseDown);
+   cleanup();
+  }
+ };
 };

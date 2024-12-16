@@ -1,36 +1,66 @@
 <script lang="ts">
-    import type { BlockType } from '$lib/block/type';
-    import { getColor } from '$lib/block/index';
-    import { ColorPalette } from '$lib/utils/color';
-    import { toast } from 'svelte-sonner';
-    import Icon from '@iconify/svelte';
-    import { Block } from '$lib/block/class';
-    import { BlockStore } from '$lib/block/store';
+	import type { BlockType } from '$lib/block/type';
+	import { getColor } from '$lib/block/index';
+	import { ColorPalette } from '$lib/utils/color';
+	import { toast } from 'svelte-sonner';
+	import Icon from '@iconify/svelte';
+	import { Block } from '$lib/block/class';
+	import { BlockStore } from '$lib/block/store';
 
-    export let content: BlockType;
+	export let content: BlockType;
 
 	const blockStore = BlockStore.getInstance();
 
-    $: isFlag = content.type === 'flag';
-    $: listWidth = listBlock ? listBlock.clientWidth + 6 : 1000;
-    $: listHeight = listBlock ? listBlock.clientHeight + 6 : 60;
+	$: isFlag = content.type === 'flag';
+	$: listWidth = listBlock ? listBlock.clientWidth + 6 : 1000;
+	$: listHeight = listBlock ? listBlock.clientHeight + 6 : 60;
 
-    let listBlock: HTMLElement;
-    let listField: HTMLInputElement;
+	let listBlock: HTMLElement;
+	let listField: HTMLInputElement;
+	let isDragging = false;
+	let blockAdded = false;
 
-    const addBlock = () => {
-        const newId = Math.random().toString(36).substring(7);
-        const newBlock: Block = Block.createBlock(content, newId, { x: 10, y: 10 });
-        blockStore.addBlock(newBlock.block);
-    }
+	const addBlock = () => {
+		const newId = Math.random().toString(36).substring(7);
+		const newBlock: Block = Block.createBlock(content, newId, { x: 10, y: 10 });
+		blockStore.addBlock(newBlock.block);
+
+		const blockElement = document.querySelector(`[data-id="${newId}"]`);
+		if (blockElement) {
+			const event = new MouseEvent('pointerdown', {
+				bubbles: true,
+				cancelable: true,
+				view: window
+			});
+			blockElement.dispatchEvent(event);
+		}
+	};
+
+	const handlePointerDown = () => {
+		isDragging = false;
+		blockAdded = false;
+		window.addEventListener('pointermove', handlePointerMove);
+		window.addEventListener('pointerup', handlePointerUp);
+	};
+
+	const handlePointerMove = () => {
+		if (!blockAdded) {
+			addBlock();
+			blockAdded = true;
+		}
+		isDragging = true;
+	};
+
+	const handlePointerUp = () => {
+		window.removeEventListener('pointermove', handlePointerMove);
+		window.removeEventListener('pointerup', handlePointerUp);
+	};
 </script>
 
 <div
 	bind:this={listBlock}
 	class="cancel"
-	on:pointerdown={() => {
-		addBlock();
-	}}
+	on:pointerdown={handlePointerDown}
 	role="button"
 	style="z-index: {content.zIndex};"
 	tabindex="0"
