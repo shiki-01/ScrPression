@@ -25,7 +25,6 @@ const config = {
 		private: false,
 		releaseType: 'draft'
 	},
-	asar: true,
 	win: {
 		target: [
 			{
