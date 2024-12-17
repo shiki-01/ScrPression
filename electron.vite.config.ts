@@ -1,5 +1,5 @@
 import { defineConfig, externalizeDepsPlugin } from 'electron-vite';
-import { svelte } from '@sveltejs/vite-plugin-svelte';
+import react from '@vitejs/plugin-react';
 import { resolve } from 'path';
 
 export default defineConfig({
@@ -23,7 +23,7 @@ export default defineConfig({
 		}
 	},
 	renderer: {
-		plugins: [svelte()],
+		plugins: [react()],
 		resolve: {
 			alias: {
 				$: resolve('src/renderer/src'),

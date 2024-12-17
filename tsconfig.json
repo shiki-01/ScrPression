@@ -1,5 +1,4 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
@@ -9,6 +8,8 @@
 		"skipLibCheck": true,
 		"sourceMap": true,
 		"strict": true,
+		"module": "esnext",
+		"jsx": "react",
 		"moduleResolution": "bundler",
 		"outDir": "build",
 		"baseUrl": ".",
@@ -23,9 +24,9 @@
 	},
 	"include": [
 		"./src/renderer/src/**/*.ts",
-		"./src/renderer/src/**/*.svelte",
+		"./src/renderer/src/**/*.tsx",
 		"./src/renderer/lib/**/*.ts",
-		"./src/renderer/lib/**/*.svelte",
+		"./src/renderer/lib/**/*.tsx",
 		"./src/preload/**/*.ts",
 		"./src/types/*.d.ts"
 	]

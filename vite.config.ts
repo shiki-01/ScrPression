@@ -1,10 +1,10 @@
 import { defineConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
 import path from 'path'
 import { fileURLToPath, URL } from 'node:url'
+import react from '@vitejs/plugin-react'
 
 export default defineConfig({
-  plugins: [svelte()],
+  plugins: [react()],
   root: path.resolve(__dirname, 'src/renderer'),
   resolve: {
     alias: {

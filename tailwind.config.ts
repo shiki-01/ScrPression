@@ -5,8 +5,8 @@ const config: Config = {
 	darkMode: ['class'],
 	content: [
 		'./src/renderer/index.html',
-		'./src/renderer/src/**/*.{html,js,svelte,ts}',
-		'./src/renderer/lib/**/*.{html,js,svelte,ts}'
+		'./src/renderer/src/**/*.{html,js,ts,tsx}',
+		'./src/renderer/lib/**/*.{html,js,ts,tsx}'
 	],
 	safelist: ['dark'],
 	theme: {
