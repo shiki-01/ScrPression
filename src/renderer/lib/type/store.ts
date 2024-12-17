@@ -1,5 +1,6 @@
 type DraggingStore = {
-    id: string;
-}
+	id: string;
+	offset: { x: number; y: number };
+};
 
 export type { DraggingStore }
