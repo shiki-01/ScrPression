@@ -12,7 +12,9 @@ const App: React.FC = () => {
 	const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
-	const { contents, draggingBlock, getBlock } = useBlocksStore();
+	const { contents, initailize, draggingBlock, getBlock } = useBlocksStore();
+
+	initailize();
 
 	const toggleAdd = () => {
 		setIsAdd((prev) => !prev);
@@ -183,9 +185,19 @@ const App: React.FC = () => {
 
 	const lists = blockListStore((state) => state.blocklist);
 
+	const [initialized, setInitialized] = useState(false)
 	useEffect(() => {
 		blockListStore.setState({ blocklist: listContents });
+		initailize().then(() => {
+			setInitialized(true);
+		})
 	}, []);
+
+	if (!initialized) {
+		return (
+			<div>Loading...</div>
+		)
+	}
 
 	const [dragging, setDragging] = useState(draggingBlock ? draggingBlock.id : '');
 	const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });

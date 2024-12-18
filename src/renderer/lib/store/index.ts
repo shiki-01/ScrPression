@@ -5,6 +5,7 @@ import { DraggingStore } from '$lib/type/store';
 
 type Store = {
 	contents: Map<string, BlockType>;
+  initailize: () => Promise<void>;
 	addContent: (content: BlockType) => void;
 	removeContent: (id: string) => void;
 	updateContent: (id: string, partialContent: Partial<BlockType>) => void;
@@ -24,6 +25,12 @@ const useBlocksStore = create<Store>()(
     persist(
       (set, get) => ({
         contents: new Map(),
+        initailize: () => {
+          return new Promise<void>((resolve) => {
+            set({ contents: new Map() });
+            resolve();
+          })
+        },
         addContent: (content) => set((state) => {
           const newContents = new Map(state.contents);
           newContents.set(content.id, content);
@@ -55,13 +62,13 @@ const useBlocksStore = create<Store>()(
         clearDraggingBlock: () => set({ draggingBlock: null }),
       }),
       {
-        ame: 'blocks-store',
+        name: 'blocks-store',
       }
     )
   )
 );
 
-typeBlockListStore = {
+type BlockListStore = {
     blocklist: BlockType[];
 }
 
