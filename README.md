@@ -55,4 +55,4 @@
 
 ### バグレポート・提案 / Bug Report, Suggest
 
-イメージ像だけなら [Issues](https://github.com/shiki-01/ScrPression/issues) 、コードまで書いてくれる場合は、変更点や仕様と一緒に [Pull Request](https://github.com/shiki-01/ScrPression/pulls) してください！
+イメージ像だけなら [Issues](https://github.com/shiki-01/ScrPression/issues) や [Discussions](https://github.com/shiki-01/ScrPression/discussions) 、コードまで書いてくれる場合は、変更点や仕様と一緒に [Pull Request](https://github.com/shiki-01/ScrPression/pulls) してください！
