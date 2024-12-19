@@ -7,8 +7,7 @@
 		"devtool": "react-devtools",
 		"start": "vite dev",
 		"electron": "electron .",
-		"ev:dev": "electron-vite dev",
-		"dev": "run-p devtool ev:dev",
+		"dev": "electron-vite dev",
 		"build": "electron-vite build",
 		"preview": "electron-vite preview",
 		"prepare": "svelte-kit sync",
@@ -29,6 +28,7 @@
 		"@tailwindcss/vite": "^4.0.0-alpha.31",
 		"@types/react": "^19.0.1",
 		"@types/react-dom": "^19.0.2",
+		"@types/uuid": "^10.0.0",
 		"autoprefixer": "^10.4.20",
 		"bits-ui": "^0.21.16",
 		"clsx": "^2.1.1",
@@ -77,6 +77,7 @@
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
 		"svelte-sonner": "^0.3.28",
+		"uuid": "^11.0.3",
 		"zustand": "^5.0.2"
 	}
 }

@@ -5,16 +5,15 @@ import Block from '$lib/components/Block';
 import Drag from '$lib/components/Drag';
 import ContextMenu from '$lib/components/ContextMenu';
 import { blockListStore, useBlocksStore } from '$lib/store';
-import type { BlockType } from '$lib/type/block';
+import { BlockStore } from '$lib/block/store';
+import type { BlockType } from '$lib/block/type';
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
 	const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
-	const { contents, initailize, draggingBlock, getBlock } = useBlocksStore();
-
-	initailize();
+	const { draggingBlock } = useBlocksStore();
 
 	const toggleAdd = () => {
 		setIsAdd((prev) => !prev);
@@ -69,6 +68,10 @@ const App: React.FC = () => {
 			x: 10,
 			y: 10
 		},
+		size: {
+			width: 200,
+			height: 100
+		},
 		childId: '',
 		parentId: '',
 		depth: 0,
@@ -109,6 +112,10 @@ const App: React.FC = () => {
 				}
 			}
 		],
+		size: {
+			width: 200,
+			height: 100
+		},
 		connections: {
 			input: {
 				x: 16,
@@ -145,6 +152,10 @@ const App: React.FC = () => {
 				y: 0
 			}
 		},
+		size: {
+			width: 200,
+			height: 100
+		},
 		position: {
 			x: 10,
 			y: 10
@@ -175,6 +186,10 @@ const App: React.FC = () => {
 			x: 10,
 			y: 10
 		},
+		size: {
+			width: 200,
+			height: 100
+		},
 		childId: '',
 		parentId: '',
 		depth: 0,
@@ -185,32 +200,42 @@ const App: React.FC = () => {
 
 	const lists = blockListStore((state) => state.blocklist);
 
-	const [initialized, setInitialized] = useState(false)
-	useEffect(() => {
-		blockListStore.setState({ blocklist: listContents });
-		initailize().then(() => {
-			setInitialized(true);
-		})
-	}, []);
-
-	if (!initialized) {
-		return (
-			<div>Loading...</div>
-		)
-	}
-
-	const [dragging, setDragging] = useState(draggingBlock ? draggingBlock.id : '');
+	const [dragging, setDragging] = useState('');
 	const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
 
 	useEffect(() => {
 		setDragging(draggingBlock?.id || '');
 	}, [draggingBlock]);
 
+	const [idList, setIdList] = useState<string[]>([]);
+
 	useEffect(() => {
-		if (!(contents instanceof Map)) {
-			console.error('blocks is not a Map', contents);
-		}
-	}, [contents]);
+		const store = BlockStore.getInstance();
+
+		setIdList(store.getBlocks().idList);
+
+		const unsubscribe = store.subscribe((event) => {
+			switch (event.type) {
+				case 'add':
+				case 'remove':
+					console.log(store.getBlocks().idList);
+					setIdList(store.getBlocks().idList);
+					break;
+				case 'clear':
+				case 'initialize':
+					setIdList(store.getBlocks().idList);
+					break;
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, []);
+
+	useEffect(() => {
+		blockListStore.setState({ blocklist: listContents });
+	}, []);
 
 	return (
 		<main
@@ -285,20 +310,22 @@ const App: React.FC = () => {
 							}}
 							onContextMenu={openContextMenu}
 							className="canvas relative h-full w-full cursor-grab bg-slate-50 active:cursor-grabbing"
+							onPointerDown={(event) => {
+								if (event.button === 0) {
+									setInitialPosition({ x: event.clientX, y: event.clientY });
+								}
+							}}
 						>
-							{dragging && (
+							{dragging !== '' && BlockStore.getInstance().getBlock(dragging) && (
 								<Drag
-									content={contents.get(dragging)!}
-									initialPosition={{
-										x: contents.get(dragging)!.position.x + 250,
-										y: contents.get(dragging)!.position.y + 50
-									}}
-									onEnd={(position) => {}}
+									content={BlockStore.getInstance().getBlock(dragging) as BlockType}
+									initialPosition={initialPosition}
+									onEnd={() => {}}
 								/>
 							)}
-							{Array.from(contents.entries()).map(
-								([_, content], i) => dragging !== content.id && <Block key={i} content={content} />
-							)}
+							{idList.map((id) => {
+								return dragging !== id && <Block key={id} id={id} />;
+							})}
 						</div>
 						<div className="trash absolute bottom-2 right-2 text-slate-400 transition-colors duration-300 hover:text-slate-500">
 							<Icon className="h-10 w-10" icon="ic:round-delete" />

@@ -1,7 +1,7 @@
 import { blockspace, output } from '$lib/stores';
 import { writable, type Writable } from 'svelte/store';
 import { toast } from 'svelte-sonner';
-import type { BlockType } from '$lib/block/type';
+import type { BlockType } from '../../../renderer/lib/block/type';
 import { BlockStore } from '$lib/block/store';
 
 const timeoutState: Writable<boolean> = writable(false);
@@ -95,7 +95,7 @@ const updateChildrenPositions = (block: BlockType) => {
 		if (!childBlock) break;
 
 		blockStore.updateBlock(childBlock.id, {
-			position: { x: currentBlock.position.x, y: currentBlock.position.y + offset },
+			position: { x: currentBlock.position.x, y: currentBlock.position.y + offset }
 		});
 		currentBlock = childBlock;
 	}

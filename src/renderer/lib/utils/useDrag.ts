@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useBlocksStore } from '$lib/store';
-import { BlockType } from '$lib/type/block';
+import { BlockStore } from '$lib/block/store';
+import { BlockType } from '$lib/block/type';
 
 const useDrag = (
 	ref: React.RefObject<HTMLDivElement | null>,
@@ -37,9 +37,7 @@ const useDrag = (
 			const newX = event.clientX - offset.current.x;
 			const newY = event.clientY - offset.current.y;
 
-			useBlocksStore.getState().updateContent(params.content.id, {
-				position: { x: newX, y: newY }
-			});
+			BlockStore.getInstance().updateBlock(params.content.id, { position: { x: newX, y: newY } });
 			params.onDrag(event);
 		};
 

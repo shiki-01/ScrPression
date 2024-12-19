@@ -1,159 +1,232 @@
 import { Icon } from '@iconify/react';
-import { BlockType } from '$lib/type/block';
+import { BlockType } from '$lib/block/type';
 import { draggingStore, useBlocksStore } from '$lib/store';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { DraggingStore } from '$lib/type/store';
 import { ColorPalette, getColor } from '$lib/utils/color';
 import useDrag from '$lib/utils/useDrag';
+import { BlockStore } from '$lib/block/store';
 
 interface BlockProps {
-	content: BlockType;
+	id: string;
 }
 
-const Block: React.FC<BlockProps> = ({ content }) => {
-	const [isDragging, setIsDragging] = useState(draggingStore.getState().id === content.id);
-
-	const [width, setWidth] = useState(200);
-	const [height, setHeight] = useState(58);
+const Block: React.FC<BlockProps> = ({ id }) => {
 	const [isFlag, setIsFlag] = useState(false);
+	const store = BlockStore.getInstance();
 
 	const blockRef = useRef<HTMLDivElement>(null);
-	const block = useBlocksStore((state) => state.getBlock(content.id));
-	const position = block?.position || content.position;
+	const [content, setContent] = useState<BlockType>(store.getBlock(id)!);
+	const [blockContent, setBlockContent] = useState<BlockType>(content);
+
+	useEffect(() => {
+		const unsubscribe = store.subscribe((event) => {
+			if (event.id === id) {
+				switch (event.type) {
+					case 'update':
+						if (event.block) {
+							const updatedBlock = event.block;
+							setBlockContent(updatedBlock);
+							console.log(blockContent);
+						}
+						break;
+				}
+			} else {
+				switch (event.type) {
+					case 'remove':
+						const block = store.getBlock(id);
+						if (block) {
+							setBlockContent(block);
+						}
+				}
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [id]);
+
+	const [size, setSize] = useState(blockContent.size);
+
+	useEffect(() => {
+		const store = BlockStore.getInstance();
+
+		setSize(blockContent.size);
+
+		const unsubscribe = store.subscribe((event) => {
+			if (event.id === blockContent.id && event.type === 'update') {
+				if (event.block?.size) {
+					setSize(event.block.size);
+				}
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [blockContent.id]);
+
+	const updateSize = useCallback(() => {
+		if (blockRef.current) {
+			const rect = blockRef.current.getBoundingClientRect();
+			const newWidth = rect.width;
+			const newHeight = rect.height + 8;
+
+			if (newWidth !== size.width || newHeight !== size.height) {
+				console.log(newWidth, newHeight);
+				store.updateBlock(blockContent.id, {
+					size: { width: newWidth, height: newHeight }
+				});
+				console.log(store.getBlock(blockContent.id));
+				const newBlock = store.getBlock(blockContent.id);
+				if (newBlock) {
+					setBlockContent(newBlock);
+				}
+				console.log(blockContent.size);
+			}
+		}
+	}, [blockContent.id, size]);
+
+	useEffect(() => {
+		updateSize();
+	}, [blockContent.contents, updateSize]);
+
+	useEffect(() => {
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.target === blockRef.current) {
+					requestAnimationFrame(() => {
+						updateSize();
+					});
+				}
+			}
+		});
+
+		if (blockRef.current) {
+			resizeObserver.observe(blockRef.current);
+		}
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [updateSize]);
+
+	const getPath = useCallback(() => {
+		return isFlag
+			? `M 14 2 L 42 2 L ${size.width - 14} 2 Q ${size.width} 2 ${size.width} 14 L ${size.width} ${size.height - 18} Q ${size.width} ${size.height - 14} ${size.width - 4} ${size.height - 14} L 40 ${size.height - 14} L 40 ${size.height - 10} Q 40 ${size.height - 8} 36 ${size.height - 8} L 20 ${size.height - 8} Q 16 ${size.height - 8} 16 ${size.height - 10} L 16 ${size.height - 14} L 4 ${size.height - 14} Q 2 ${size.height - 14} 2 ${size.height - 18} L 2 14 Q 2 2 14 2 Z`
+			: `M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L ${size.width - 4} 2 Q ${size.width} 2 ${size.width} 4 L ${size.width} ${size.height - 18} Q ${size.width} ${size.height - 14} ${size.width - 4} ${size.height - 14} L 40 ${size.height - 14} L 40 ${size.height - 10} Q 40 ${size.height - 8} 36 ${size.height - 8} L 20 ${size.height - 8} Q 16 ${size.height - 8} 16 ${size.height - 10} L 16 ${size.height - 14} L 4 ${size.height - 14} Q 2 ${size.height - 14} 2 ${size.height - 18} L 2 4 Q 2 2 4 2 Z`;
+	}, [size.width, size.height, isFlag]);
 
 	const { updateContent, getBlock, draggingBlock, setDraggingBlock, clearDraggingBlock } =
 		useBlocksStore();
 
 	useDrag(blockRef, {
 		bounds: 'parent',
-		position,
-		content,
+		position: { x: blockContent.position.x, y: blockContent.position.y },
+		content: blockContent,
 		onDrag: () => {},
 		onStart: (event) => {
-			const offsetX = event.clientX - blockRef.current!.getBoundingClientRect().left;
-			const offsetY = event.clientY - blockRef.current!.getBoundingClientRect().top;
-			setDraggingBlock(content.id, { x: offsetX, y: offsetY });
-			setIsDragging(true);
+			const offset = blockRef.current!.getBoundingClientRect();
+			setDraggingBlock(blockContent.id, {
+				x: event.clientX - offset.left,
+				y: event.clientY - offset.top
+			});
 		},
 		onEnd: (event) => {
 			const finalPosition = {
 				x: event.clientX - draggingBlock!.offset.x,
 				y: event.clientY - draggingBlock!.offset.y
 			};
-			updateContent(content.id, { position: finalPosition });
+			store.updateBlock(blockContent.id, { position: finalPosition });
 			clearDraggingBlock();
-			setIsDragging(false);
 		}
 	});
 
 	useEffect(() => {
-		const block = getBlock(content.id);
+		const block = blockContent;
 		if (block) {
-			position.x = block.position.x;
-			position.y = block.position.y;
-			console.log('setPosition', block.position);
+			blockContent.position.x = block.position.x;
+			blockContent.position.y = block.position.y;
 		}
-	}, [getBlock, content.id]);
+	}, [getBlock, blockContent.id]);
 
 	useEffect(() => {
-		updateContent(content.id, { position });
-	}, [position, content.id, updateContent]);
-
-	useEffect(() => {
-		const unsubscribe = draggingStore.subscribe((state: DraggingStore) => {
-			setIsDragging(state.id === content.id);
-		});
+		const unsubscribe = draggingStore.subscribe((state: DraggingStore) => {});
 
 		return () => {
 			unsubscribe();
 		};
-	}, [content.id]);
+	}, [blockContent.id]);
 
 	useEffect(() => {
-		setIsFlag(content.type === 'flag');
-	}, [content.type]);
-
-	const updateSize = () => {
-		if (blockRef.current) {
-			setWidth(blockRef.current.offsetWidth);
-			setHeight(blockRef.current.offsetHeight + 8);
-		}
-	};
+		setIsFlag(blockContent.type === 'flag');
+	}, [blockContent.type]);
 
 	useEffect(() => {
 		updateSize();
 	}, []);
 
-	useEffect(() => {
-		if (!isDragging) {
-			updateSize();
-		}
-	}, [isDragging]);
-
-	if (isDragging || !content) {
-		return null;
-	}
-
 	return (
 		<div
 			ref={blockRef}
 			className="cancel absolute"
-			style={{ zIndex: content.zIndex, left: position.x, top: position.y }}
+			style={{
+				zIndex: blockContent.zIndex,
+				left: blockContent.position.x,
+				top: blockContent.position.y
+			}}
 		>
 			<div
 				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
-				data-id={content.id}
+				data-id={blockContent.id}
 			>
-				{content.connections.input && (
+				{blockContent.connections.input && (
 					<span
-						data-id={content.id}
+						data-id={blockContent.id}
 						className="input absolute h-2 w-6"
 						style={{
-							left: content.connections.input.x,
-							top: content.connections.input.y
+							left: blockContent.connections.input.x,
+							top: blockContent.connections.input.y
 						}}
 					></span>
 				)}
-				{content.connections.output && (
+				{blockContent.connections.output && (
 					<span
-						data-id={content.id}
+						data-id={blockContent.id}
 						className="output absolute h-2 w-6"
 						style={{
-							bottom: content.connections.output.y,
-							left: content.connections.output.x
+							bottom: blockContent.connections.output.y,
+							left: blockContent.connections.output.x
 						}}
 					></span>
 				)}
 				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
 					<svg
 						className=""
-						height={height}
+						height={size.height}
+						width={size.width + 2}
 						role="none"
-						width={width + 2}
 						xmlns="http://www.w3.org/2000/svg"
 					>
 						<path
-							d={
-								isFlag
-									? `M 14 2 L 42 2 L ${width - 14} 2 Q ${width} 2 ${width} 14 L ${width} ${height - 18} Q ${width} ${height - 14} ${width - 4} ${height - 14} L 40 ${height - 14} L 40 ${height - 10} Q 40 ${height - 8} 36 ${height - 8} L 20 ${height - 8} Q 16 ${height - 8} 16 ${height - 10} L 16 ${height - 14} L 4 ${height - 14} Q 2 ${height - 14} 2 ${height - 18} L 2 14 Q 2 2 14 2 Z`
-									: `M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L ${width - 4} 2 Q ${width} 2 ${width} 4 L ${width} ${height - 18} Q ${width} ${height - 14} ${width - 4} ${height - 14} L 40 ${height - 14} L 40 ${height - 10} Q 40 ${height - 8} 36 ${height - 8} L 20 ${height - 8} Q 16 ${height - 8} 16 ${height - 10} L 16 ${height - 14} L 4 ${height - 14} Q 2 ${height - 14} 2 ${height - 18} L 2 4 Q 2 2 4 2 Z`
-							}
-							fill={ColorPalette[getColor(content.type)].bg}
-							stroke={ColorPalette[getColor(content.type)].border}
+							d={getPath()}
+							fill={ColorPalette[getColor(blockContent.type)].bg}
+							stroke={ColorPalette[getColor(blockContent.type)].border}
 							strokeWidth="2"
 							style={{
-								filter: `drop-shadow(0 4px 0 ${ColorPalette[getColor(content.type)].border})`
+								filter: `drop-shadow(0 4px 0 ${ColorPalette[getColor(blockContent.type)].border})`
 							}}
 						></path>
 					</svg>
 				</div>
 				<div
 					className="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
-					style={{ color: ColorPalette[getColor(content.type)].text }}
+					style={{ color: ColorPalette[getColor(blockContent.type)].text }}
 				>
-					<div className="whitespace-nowrap font-bold">{content.title}</div>
+					<div className="whitespace-nowrap font-bold">{blockContent.title}</div>
 					<div className="flex flex-row gap-2 align-middle">
-						{content.contents.map((item, index) => (
+						{blockContent.contents.map((item, index) => (
 							<React.Fragment key={index}>
 								{item.type === 'separator' ? (
 									<div className="h-5 w-[1px] bg-blue-950"></div>
@@ -163,8 +236,8 @@ const Block: React.FC<BlockProps> = ({ content }) => {
 										<div
 											className="flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
 											style={{
-												backgroundColor: ColorPalette[getColor(content.type)].text,
-												borderColor: ColorPalette[getColor(content.type)].border
+												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
+												borderColor: ColorPalette[getColor(blockContent.type)].border
 											}}
 										>
 											<input
@@ -173,7 +246,6 @@ const Block: React.FC<BlockProps> = ({ content }) => {
 												style={{ width: `${item.content.value.length + 1}ch` }}
 												onChange={(e) => {
 													e.target.style.width = `${e.target.value.length + 1}ch`;
-													setWidth(blockRef.current!.offsetWidth);
 												}}
 											/>
 										</div>
@@ -186,8 +258,8 @@ const Block: React.FC<BlockProps> = ({ content }) => {
 						<button
 							className="flex items-center justify-center rounded-full border-2 p-1"
 							style={{
-								backgroundColor: ColorPalette[getColor(content.type)].text,
-								borderColor: ColorPalette[getColor(content.type)].border
+								backgroundColor: ColorPalette[getColor(blockContent.type)].text,
+								borderColor: ColorPalette[getColor(blockContent.type)].border
 							}}
 						>
 							<Icon icon="ic:round-flag" className="h-5 w-5 text-green-400" />

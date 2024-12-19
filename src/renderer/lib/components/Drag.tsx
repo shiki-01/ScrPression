@@ -1,8 +1,9 @@
 import { Icon } from '@iconify/react';
-import { BlockType } from '$lib/type/block';
+import { BlockType } from '$lib/block/type';
 import { ColorPalette, getColor } from '$lib/utils/color';
 import React, { useEffect, useRef, useState } from 'react';
 import { useBlocksStore } from '$lib/store';
+import { BlockStore } from '$lib/block/store';
 
 interface DragProps {
 	content: BlockType;
@@ -11,16 +12,22 @@ interface DragProps {
 }
 
 const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
-	const [position, setPosition] = useState(initialPosition);
+	const { clearDraggingBlock, draggingBlock, getDraggingBlock } = useBlocksStore();
+
+	const offset = draggingBlock ? draggingBlock.offset : { x: 0, y: 0 };
+	const [position, setPosition] = useState({
+		x: initialPosition.x - offset.x,
+		y: initialPosition.y - offset.y
+	});
 	const blockRef = useRef<HTMLDivElement>(null);
 	const isDragging = useRef(true);
-	const { updateContent, removeContent, draggingBlock, clearDraggingBlock } = useBlocksStore();
+
+	const store = BlockStore.getInstance();
 
 	useEffect(() => {
 		const onMouseMove = (event: MouseEvent) => {
 			if (!isDragging.current) return;
 
-			const offset = draggingBlock!.offset;
 			const newPosition = {
 				x: event.clientX - offset.x,
 				y: event.clientY - offset.y
@@ -29,12 +36,13 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 		};
 
 		const onMouseUp = (event: MouseEvent) => {
-			if (!isDragging.current || !draggingBlock) return;
+			const newDraggingBlock = getDraggingBlock();
+			if (!isDragging.current || !newDraggingBlock) return;
 
 			isDragging.current = false;
 			const finalPosition = {
-				x: event.clientX - draggingBlock.offset.x - 250,
-				y: event.clientY - draggingBlock.offset.y - 50
+				x: event.clientX - newDraggingBlock.offset.x - 250,
+				y: event.clientY - newDraggingBlock.offset.y - 50
 			};
 
 			const elements = document.elementsFromPoint(event.clientX, event.clientY);
@@ -43,9 +51,9 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 			);
 
 			if (shouldRemove) {
-				removeContent(content.id);
+				store.removeBlock(content.id);
 			} else {
-				updateContent(content.id, { position: finalPosition });
+				store.updateBlock(content.id, { position: finalPosition });
 				onEnd(finalPosition);
 			}
 
@@ -107,8 +115,8 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 						data-id={content.id}
 						className="output absolute h-2 w-6"
 						style={{
-							bottom: content.connections.output.x,
-							top: content.connections.output.y
+							bottom: content.connections.output.y,
+							left: content.connections.output.x
 						}}
 					></span>
 				)}

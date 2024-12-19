@@ -1,8 +1,9 @@
-import { BlockType } from '$lib/type/block';
+import { BlockType } from '$lib/block/type';
 import { Icon } from '@iconify/react';
 import { ColorPalette, getColor } from '$lib/utils/color';
 import React, { useEffect, useRef, useState } from 'react';
 import { useBlocksStore } from '$lib/store';
+import { BlockStore } from '$lib/block/store';
 
 interface ListProps {
 	content: BlockType;
@@ -13,15 +14,8 @@ const List: React.FC<ListProps> = ({ content }) => {
 	const [listHeight, setListHeight] = useState(58);
 	const [isFlag, setIsFlag] = useState(false);
 
-	const {
-		updateContent,
-		getBlock,
-		addContent,
-		removeContent,
-		draggingBlock,
-		setDraggingBlock,
-		clearDraggingBlock
-	} = useBlocksStore();
+	const { draggingBlock, setDraggingBlock, getDraggingBlock, clearDraggingBlock } =
+		useBlocksStore();
 
 	const blockRef = useRef<HTMLDivElement>(null);
 
@@ -33,9 +27,10 @@ const List: React.FC<ListProps> = ({ content }) => {
 	}, [content.type]);
 
 	const addBlock = (event: PointerEvent) => {
-		const newId = Math.random().toString(36).substring(7);
-		addContent({ ...content, id: newId });
-		setDraggingBlock(newId, { x: event.clientX, y: event.clientY });
+		const blockStore = BlockStore.getInstance()
+		cons;t newId = blockStore.addBlock(content)
+		cons;t offset = blockRef.current!.getBoundingClientRect();
+		setDraggingBlock(newId, { x: event.clientX - offset.left, y: event.clientY - offset.top });
 	};
 
 	const handlePointerDown = () => {
@@ -56,7 +51,6 @@ const List: React.FC<ListProps> = ({ content }) => {
 		window.removeEventListener('pointermove', handlePointerMove);
 		window.removeEventListener('pointerup', handlePointerUp);
 		setIsDragging(false);
-		clearDraggingBlock();
 	};
 
 	const updateSize = () => {
