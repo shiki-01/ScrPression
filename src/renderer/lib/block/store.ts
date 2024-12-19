@@ -6,6 +6,7 @@ class BlockStore {
 	private blocks: Map<string, BlockType> = new Map();
 	private idList: string[] = [];
 	private output: string = '';
+	private canvasPos: { x: number; y: number } = { x: 0, y: 0 };
 	private listeners: Set<
 		(event: { type: string; id: string; block?: BlockType; output?: string }) => void
 	> = new Set();
@@ -173,6 +174,15 @@ class BlockStore {
 	public clearOutput() {
 		this.output = '';
 		this.notifyListeners({ type: 'output', id: '', output: '' });
+	}
+
+	public getCanvasPos(): { x: number; y: number } {
+		return this.canvasPos;
+	}
+
+	public setCanvasPos(pos: { x: number; y: number }) {
+		this.canvasPos = pos;
+		this.notifyListeners({ type: 'canvas', id: '', block: undefined });
 	}
 }
 

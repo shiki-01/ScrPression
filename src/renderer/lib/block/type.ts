@@ -38,6 +38,7 @@ interface ReadonlyBlockType {
 	readonly id: string;
 	readonly type: 'flag' | ('move' | 'composition' | 'works') | 'loop' | 'value';
 	readonly title: string;
+	contents: BlockContent[];
 	readonly output: string;
 	readonly connections: {
 		input: Position | null;
@@ -48,7 +49,6 @@ interface ReadonlyBlockType {
 interface BlockType extends ReadonlyBlockType {
 	position: Position;
 	size: { width: number; height: number };
-	contents: BlockContent[];
 	childId: string;
 	parentId: string;
 	depth: number;

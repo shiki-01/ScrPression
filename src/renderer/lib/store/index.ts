@@ -60,7 +60,6 @@ const useBlocksStore = create<Store>()(
 				draggingBlock: null,
 				setDraggingBlock: (id: string, offset: { x: number; y: number }) => {
 					if (id && offset) {
-						console.log('setDraggingBlock', id, offset);
 						set({ draggingBlock: { id, offset } });
 					} else {
 						console.error('Invalid id or offset');

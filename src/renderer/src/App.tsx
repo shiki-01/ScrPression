@@ -7,6 +7,7 @@ import ContextMenu from '$lib/components/ContextMenu';
 import { blockListStore, useBlocksStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 import type { BlockType } from '$lib/block/type';
+import { useCanvas } from '$lib/utils/useCanvas';
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
@@ -26,6 +27,7 @@ const App: React.FC = () => {
 	};
 
 	const main = useRef<HTMLDivElement>(null);
+	const canvas = useRef<HTMLDivElement>(null);
 	const scrollX = useRef<HTMLDivElement>(null);
 	const scrollY = useRef<HTMLDivElement>(null);
 
@@ -210,6 +212,42 @@ const App: React.FC = () => {
 	const [idList, setIdList] = useState<string[]>([]);
 	const [output, setOutput] = useState('');
 
+	const [top, setTop] = useState(0);
+	const [bottom, setBottom] = useState(2000);
+	const [left, setLeft] = useState(0);
+	const [right, setRight] = useState(2000);
+
+	const updateCanvasSize = () => {
+		const store = BlockStore.getInstance();
+		const blocks = store.getBlocks().blocks;
+		let top = 0;
+		let bottom = 0;
+		let left = 0;
+		let right = 0;
+
+		for (const block of Object.values(blocks)) {
+			if (block.position.y < top) {
+				top = block.position.y;
+			}
+			if (block.position.y + block.size.height > bottom) {
+				bottom = block.position.y + block.size.height;
+			}
+			if (block.position.x < left) {
+				left = block.position.x;
+			}
+			if (block.position.x + block.size.width > right) {
+				right = block.position.x + block.size.width;
+			}
+		}
+
+		setTop(top - 100);
+		setBottom(bottom + 100);
+		setLeft(left - 100);
+		setRight(right + 100);
+	}
+
+	useCanvas(canvas.current);
+
 	useEffect(() => {
 		const store = BlockStore.getInstance();
 
@@ -223,6 +261,7 @@ const App: React.FC = () => {
 					setIdList(store.getBlocks().idList);
 					break;
 				case 'clear':
+				case 'update':
 				case 'initialize':
 					setIdList(store.getBlocks().idList);
 					break;
@@ -299,34 +338,43 @@ const App: React.FC = () => {
 				}}
 				className="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden"
 			>
-				<div className="block-list relative flex h-full w-full select-none flex-col items-start gap-5 bg-slate-200 p-5">
+				<div className="block-list relative flex overflow-hidden h-full w-full select-none flex-col items-start gap-5 bg-slate-200 p-5">
 					{lists.map((list, i) => (
 						<List key={i} content={list} />
 					))}
 				</div>
 				<div className="grid grid-rows-[1fr_250px]">
 					<div className="relative h-full w-full overflow-hidden">
+						{dragging !== '' && BlockStore.getInstance().getBlock(dragging) && (
+							<Drag
+								content={BlockStore.getInstance().getBlock(dragging) as BlockType}
+								initialPosition={initialPosition}
+								onEnd={() => {}}
+							/>
+						)}
 						<div
+							ref={canvas}
 							onClick={() => {
 								if (isContextMenuOpen) {
 									setIsContextMenuOpen(false);
 								}
 							}}
 							onContextMenu={openContextMenu}
-							className="canvas relative h-full w-full cursor-grab bg-slate-50 active:cursor-grabbing"
+							className="canvas relative cursor-grab bg-slate-50 active:cursor-grabbing"
+							style={{
+								width: Math.max(left + right, 2000) + 'px',
+								height: Math.max(top + bottom, 2000) + 'px',
+								backgroundSize: '20px 20px',
+								backgroundImage: 'radial-gradient(#888 10%, transparent 10%)',
+								transform: `translate(0%, 0%)`,
+								willChange: 'transform'
+							}}
 							onPointerDown={(event) => {
 								if (event.button === 0) {
 									setInitialPosition({ x: event.clientX, y: event.clientY });
 								}
 							}}
 						>
-							{dragging !== '' && BlockStore.getInstance().getBlock(dragging) && (
-								<Drag
-									content={BlockStore.getInstance().getBlock(dragging) as BlockType}
-									initialPosition={initialPosition}
-									onEnd={() => {}}
-								/>
-							)}
 							{idList.map((id) => {
 								return dragging !== id && <Block key={id} id={id} />;
 							})}

@@ -46,7 +46,12 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 				);
 			};
 
-			if (!store.getBlock(content.id)?.parentId) {
+			if (store.getBlock(content.id)?.parentId) {
+				const parentBlock = store.getBlock(store.getBlock(content.id)!.parentId) as BlockType;
+
+				store.updateBlock(content.id, { parentId: '' });
+				store.updateBlock(parentBlock.id, { childId: '' });
+			} else {
 				const inputs = document.querySelectorAll('.input');
 				const outputs = document.querySelectorAll('.output');
 
@@ -74,12 +79,14 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 					const childBlock = store.getBlock(id) as BlockType;
 					if (!childBlock) return;
 					store.updateBlock(childBlock.id, {
-						position: { x: newPosition.x - 250, y: newPosition.y + offset - 50 }
+						position: {
+							x: newPosition.x - 250 - store.getCanvasPos().x,
+							y: newPosition.y + offset - 50 - store.getCanvasPos().y
+						}
 					});
 				};
 
 				while (childId) {
-					console.log('update child position', childId);
 					updateChildPosition(childId);
 					childId = store.getBlock(childId)!.childId;
 					offset += 42;
@@ -95,8 +102,8 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 
 			isDragging.current = false;
 			const finalPosition = {
-				x: event.clientX - newDraggingBlock.offset.x - 250,
-				y: event.clientY - newDraggingBlock.offset.y - 50
+				x: event.clientX - newDraggingBlock.offset.x - 250 - store.getCanvasPos().x,
+				y: event.clientY - newDraggingBlock.offset.y - 50 - store.getCanvasPos().y
 			};
 
 			const elements = document.elementsFromPoint(event.clientX, event.clientY);
