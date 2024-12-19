@@ -33,6 +33,22 @@ const config = {
 			}
 		]
 	},
+	mac: {
+		target: [
+			{
+				target: 'dmg',
+				arch: ['x64', 'arm64']
+			}
+		]
+	},
+	linux: {
+		target: [
+			{
+				target: 'AppImage',
+				arch: ['x64', 'arm64']
+			}
+		]
+	},
 	nsis: {
 		oneClick: false,
 		perMachine: false,
