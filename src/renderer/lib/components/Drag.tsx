@@ -27,7 +27,7 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 	const store = BlockStore.getInstance();
 
 	useEffect(() => {
-		const onMouseMove = (event: MouseEvent) => {
+		const onMouseMove = (event: PointerEvent) => {
 			if (!isDragging.current) return;
 
 			const newPosition = {
@@ -96,7 +96,7 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 			setPosition(newPosition);
 		};
 
-		const onMouseUp = (event: MouseEvent) => {
+		const onMouseUp = (event: PointerEvent) => {
 			const newDraggingBlock = getDraggingBlock();
 			if (!isDragging.current || !newDraggingBlock) return;
 
@@ -131,16 +131,16 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 			}
 
 			clearDraggingBlock();
-			window.removeEventListener('mousemove', onMouseMove);
-			window.removeEventListener('mouseup', onMouseUp);
+			window.removeEventListener('pointermove', onMouseMove);
+			window.removeEventListener('pointerup', onMouseUp);
 		};
 
-		window.addEventListener('mousemove', onMouseMove);
-		window.addEventListener('mouseup', onMouseUp);
+		window.addEventListener('pointermove', onMouseMove);
+		window.addEventListener('pointerup', onMouseUp);
 
 		return () => {
-			window.removeEventListener('mousemove', onMouseMove);
-			window.removeEventListener('mouseup', onMouseUp);
+			window.removeEventListener('pointermove', onMouseMove);
+			window.removeEventListener('pointerup', onMouseUp);
 		};
 	}, [content.id, onEnd]);
 
