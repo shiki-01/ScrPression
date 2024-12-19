@@ -27,9 +27,9 @@ const List: React.FC<ListProps> = ({ content }) => {
 	}, [content.type]);
 
 	const addBlock = (event: PointerEvent) => {
-		const blockStore = BlockStore.getInstance()
-		cons;t newId = blockStore.addBlock(content)
-		cons;t offset = blockRef.current!.getBoundingClientRect();
+		const blockStore = BlockStore.getInstance();
+		const newId = blockStore.addBlock(content);
+		const offset = blockRef.current!.getBoundingClientRect();
 		setDraggingBlock(newId, { x: event.clientX - offset.left, y: event.clientY - offset.top });
 	};
 
