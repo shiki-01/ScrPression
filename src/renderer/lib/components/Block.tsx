@@ -6,6 +6,7 @@ import { DraggingStore } from '$lib/type/store';
 import { ColorPalette, getColor } from '$lib/utils/color';
 import useDrag from '$lib/utils/useDrag';
 import { BlockStore } from '$lib/block/store';
+import { path } from '$lib/utils/path';
 
 interface BlockProps {
 	id: string;
@@ -18,6 +19,7 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 	const blockRef = useRef<HTMLDivElement>(null);
 	const [content, setContent] = useState<BlockType>(store.getBlock(id)!);
 	const [blockContent, setBlockContent] = useState<BlockType>(content);
+	const [size, setSize] = useState(blockContent.size);
 
 	useEffect(() => {
 		const unsubscribe = store.subscribe((event) => {
@@ -27,7 +29,6 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 						if (event.block) {
 							const updatedBlock = event.block;
 							setBlockContent(updatedBlock);
-							console.log(blockContent);
 						}
 						break;
 				}
@@ -46,8 +47,6 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 			unsubscribe();
 		};
 	}, [id]);
-
-	const [size, setSize] = useState(blockContent.size);
 
 	useEffect(() => {
 		const store = BlockStore.getInstance();
@@ -74,16 +73,13 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 			const newHeight = rect.height + 8;
 
 			if (newWidth !== size.width || newHeight !== size.height) {
-				console.log(newWidth, newHeight);
 				store.updateBlock(blockContent.id, {
 					size: { width: newWidth, height: newHeight }
 				});
-				console.log(store.getBlock(blockContent.id));
 				const newBlock = store.getBlock(blockContent.id);
 				if (newBlock) {
 					setBlockContent(newBlock);
 				}
-				console.log(blockContent.size);
 			}
 		}
 	}, [blockContent.id, size]);
@@ -113,9 +109,7 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 	}, [updateSize]);
 
 	const getPath = useCallback(() => {
-		return isFlag
-			? `M 14 2 L 42 2 L ${size.width - 14} 2 Q ${size.width} 2 ${size.width} 14 L ${size.width} ${size.height - 18} Q ${size.width} ${size.height - 14} ${size.width - 4} ${size.height - 14} L 40 ${size.height - 14} L 40 ${size.height - 10} Q 40 ${size.height - 8} 36 ${size.height - 8} L 20 ${size.height - 8} Q 16 ${size.height - 8} 16 ${size.height - 10} L 16 ${size.height - 14} L 4 ${size.height - 14} Q 2 ${size.height - 14} 2 ${size.height - 18} L 2 14 Q 2 2 14 2 Z`
-			: `M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L ${size.width - 4} 2 Q ${size.width} 2 ${size.width} 4 L ${size.width} ${size.height - 18} Q ${size.width} ${size.height - 14} ${size.width - 4} ${size.height - 14} L 40 ${size.height - 14} L 40 ${size.height - 10} Q 40 ${size.height - 8} 36 ${size.height - 8} L 20 ${size.height - 8} Q 16 ${size.height - 8} 16 ${size.height - 10} L 16 ${size.height - 14} L 4 ${size.height - 14} Q 2 ${size.height - 14} 2 ${size.height - 18} L 2 4 Q 2 2 4 2 Z`;
+		return path(isFlag, size);
 	}, [size.width, size.height, isFlag]);
 
 	const { updateContent, getBlock, draggingBlock, setDraggingBlock, clearDraggingBlock } =
@@ -166,6 +160,39 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 	useEffect(() => {
 		updateSize();
 	}, []);
+
+	function searchAllChildren(id: string) {
+		const children: BlockType[] = [];
+		store.getBlocks().idList.forEach((blockId) => {
+			const block = store.getBlock(blockId);
+			if (block?.parentId === id) {
+				children.push(block);
+				children.push(...searchAllChildren(block.id));
+			}
+		});
+		return children;
+	}
+
+	const formatOutput = (blocks: BlockType[]) => {
+		const outputText = blocks
+			.filter((block) => block.type !== 'flag')
+			.map((block) => {
+				let blockOutput = block.output;
+				block.contents.forEach((content) => {
+					if (content.type === 'separator') {
+						return;
+					} else if (content.type === 'value') {
+						const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
+						blockOutput = blockOutput.replace(regex, content.content.value);
+					}
+				});
+				return blockOutput;
+			})
+			.join('\n');
+
+		store.clearOutput();
+		store.setOutput(outputText.trim());
+	};
 
 	return (
 		<div
@@ -234,7 +261,7 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 									<div className="flex flex-row items-center justify-center gap-1.5">
 										<div className="whitespace-nowrap">{item.content.title}</div>
 										<div
-											className="flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
+											className="field flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
 											style={{
 												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 												borderColor: ColorPalette[getColor(blockContent.type)].border
@@ -246,6 +273,9 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 												style={{ width: `${item.content.value.length + 1}ch` }}
 												onChange={(e) => {
 													e.target.style.width = `${e.target.value.length + 1}ch`;
+													const value = e.currentTarget.value;
+													console.log(value);
+													store.updateValue(blockContent.id, item.id, value);
 												}}
 											/>
 										</div>
@@ -256,13 +286,18 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 					</div>
 					{isFlag && (
 						<button
-							className="flex items-center justify-center rounded-full border-2 p-1"
+							className="field flex items-center justify-center rounded-full border-2 p-1"
 							style={{
 								backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 								borderColor: ColorPalette[getColor(blockContent.type)].border
 							}}
+							onClick={() => {
+								const children = searchAllChildren(content.id);
+								formatOutput(children);
+								window.navigator.clipboard.writeText(store.getOutput()).then((r) => r);
+							}}
 						>
-							<Icon icon="ic:round-flag" className="h-5 w-5 text-green-400" />
+							<Icon icon="ic:round-flag" className="field h-5 w-5 text-green-400" />
 						</button>
 					)}
 				</div>

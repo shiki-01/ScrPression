@@ -4,6 +4,7 @@ import { ColorPalette, getColor } from '$lib/utils/color';
 import React, { useEffect, useRef, useState } from 'react';
 import { useBlocksStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
+import { path } from '$lib/utils/path';
 
 interface DragProps {
 	content: BlockType;
@@ -21,6 +22,7 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 	});
 	const blockRef = useRef<HTMLDivElement>(null);
 	const isDragging = useRef(true);
+	const [connection, setConnection] = useState<null | string>(null);
 
 	const store = BlockStore.getInstance();
 
@@ -32,6 +34,58 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 				x: event.clientX - offset.x,
 				y: event.clientY - offset.y
 			};
+
+			const overlap = (node: HTMLElement, target: HTMLElement) => {
+				const nodeRect = node.getBoundingClientRect();
+				const targetRect = target.getBoundingClientRect();
+				return !(
+					nodeRect.right < targetRect.left ||
+					nodeRect.left > targetRect.right ||
+					nodeRect.bottom < targetRect.top ||
+					nodeRect.top > targetRect.bottom
+				);
+			};
+
+			if (!store.getBlock(content.id)?.parentId) {
+				const inputs = document.querySelectorAll('.input');
+				const outputs = document.querySelectorAll('.output');
+
+				inputs.forEach((inputElement) => {
+					outputs.forEach((outputElement) => {
+						const targetID = (outputElement as HTMLElement).dataset.id;
+						if (!targetID || targetID === content.id || store.getBlock(targetID)!.childId) return;
+
+						if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
+							setConnection(targetID);
+							console.log('overlap', targetID, content.id);
+							store.updateBlock(content.id, { parentId: targetID });
+							store.updateBlock(targetID, { childId: content.id });
+							console.log('overlap', store.getBlocks().blocks);
+						}
+					});
+				});
+			}
+
+			if (store.getBlock(content.id)?.childId) {
+				let childId = store.getBlock(content.id)!.childId;
+				let offset = 42;
+
+				const updateChildPosition = (id: string) => {
+					const childBlock = store.getBlock(id) as BlockType;
+					if (!childBlock) return;
+					store.updateBlock(childBlock.id, {
+						position: { x: newPosition.x - 250, y: newPosition.y + offset - 50 }
+					});
+				};
+
+				while (childId) {
+					console.log('update child position', childId);
+					updateChildPosition(childId);
+					childId = store.getBlock(childId)!.childId;
+					offset += 42;
+				}
+			}
+
 			setPosition(newPosition);
 		};
 
@@ -53,7 +107,16 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 			if (shouldRemove) {
 				store.removeBlock(content.id);
 			} else {
-				store.updateBlock(content.id, { position: finalPosition });
+				if (store.getBlock(content.id)?.parentId) {
+					const parentBlock = store.getBlock(store.getBlock(content.id)!.parentId) as BlockType;
+					const parentPosition = {
+						x: parentBlock.position.x,
+						y: parentBlock.positi;on.y
+					}
+					store.updateBlock(content.id, { position: { x: parentPosition.x, y: parentPosition.y + 42 } });
+				} else {
+					store.updateBlock(content.id, { position: finalPosition });
+				}
 				store.updateZIndex(content.id);
 				onEnd(finalPosition);
 			}

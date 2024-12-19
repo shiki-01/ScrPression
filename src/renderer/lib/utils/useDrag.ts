@@ -22,6 +22,11 @@ const useDrag = (
 		if (!element) return;
 
 		const onMouseDown = (event: PointerEvent) => {
+			const elements = document.elementsFromPoint(event.clientX, event.clientY);
+			const shouldRemove = elements.some((element) => element.classList.contains('field'));
+
+			if (shouldRemove) return;
+
 			setIsDragging(true);
 			startPos.current = { x: event.clientX, y: event.clientY };
 			offset.current = {

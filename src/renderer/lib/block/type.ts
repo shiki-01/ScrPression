@@ -56,9 +56,10 @@ interface BlockType extends ReadonlyBlockType {
 }
 
 type BlockStoreEvent = {
-	type: 'add' | 'remove' | 'update' | 'clear';
+	type: 'add' | 'remove' | 'update' | 'clear' | 'output';
 	id?: string;
 	block?: Block;
+	output?: string;
 };
 
 export {

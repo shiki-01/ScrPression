@@ -5,8 +5,10 @@ class BlockStore {
 	private static instance: BlockStore;
 	private blocks: Map<string, BlockType> = new Map();
 	private idList: string[] = [];
-	private listeners: Set<(event: { type: string; id: string; block?: BlockType }) => void> =
-		new Set();
+	private output: string = '';
+	private listeners: Set<
+		(event: { type: string; id: string; block?: BlockType; output?: string }) => void
+	> = new Set();
 
 	private constructor() {
 		this.clearBlocks();
@@ -61,22 +63,64 @@ class BlockStore {
 		}
 	}
 
+	public updateValue(id: string, contentId: string, value: string) {
+		const block = this.blocks.get(id);
+		if (block) {
+			const newBlocks = new Map(this.blocks);
+			const updatedBlock = {
+				...block,
+				contents: block.contents.map((content) => {
+					if (content.id === contentId) {
+						if (content.type === 'separator') {
+							return content;
+						} else if (content.type === 'value') {
+							return { ...content, content: { ...content.content, value } };
+						} else if (content.type === 'select') {
+							return content;
+						}
+					}
+					return content;
+				})
+			};
+			newBlocks.set(id, updatedBlock);
+
+			this.blocks = newBlocks;
+
+			this.notifyListeners({ type: 'update', id, block: updatedBlock });
+		}
+	}
+
 	public updateZIndex(id: string) {
 		const newBlocks = new Map(this.blocks);
 		const newIdList = [...this.idList];
 		const maxZIndex = newIdList.length;
 
+		const collectAllChildIds = (blockId: string): string[] => {
+			const block = newBlocks.get(blockId);
+			if (block && block.childId) {
+				return [blockId, ...collectAllChildIds(block.childId)];
+			}
+			return [blockId];
+		};
+
 		const block = newBlocks.get(id);
 		if (block) {
 			const currentZIndex = block.zIndex;
-			block.zIndex = maxZIndex;
-			newBlocks.set(id, block);
+			const targetIds = collectAllChildIds(id);
+
+			targetIds.forEach((blockId, index) => {
+				const targetBlock = newBlocks.get(blockId);
+				if (targetBlock) {
+					targetBlock.zIndex = maxZIndex + index;
+					newBlocks.set(blockId, targetBlock);
+				}
+			});
 
 			newIdList.forEach((blockId) => {
-				if (blockId !== id) {
+				if (!targetIds.includes(blockId)) {
 					const otherBlock = newBlocks.get(blockId);
 					if (otherBlock && otherBlock.zIndex > currentZIndex) {
-						otherBlock.zIndex -= 1;
+						otherBlock.zIndex -= targetIds.length;
 						newBlocks.set(blockId, otherBlock);
 					}
 				}
@@ -106,13 +150,29 @@ class BlockStore {
 		this.notifyListeners({ type: 'clear', id: '' });
 	}
 
-	public subscribe(listener: (event: { type: string; id: string; block?: BlockType }) => void) {
+	public subscribe(
+		listener: (event: { type: string; id: string; block?: BlockType; output?: string }) => void
+	) {
 		this.listeners.add(listener);
 		return () => this.listeners.delete(listener);
 	}
 
-	private notifyListeners(event: { type: string; id: string; block?: BlockType }) {
+	private notifyListeners(event: { type: string; id: string; block?: BlockType; output?: string }) {
 		this.listeners.forEach((listener) => listener(event));
+	}
+
+	public getOutput(): string {
+		return this.output;
+	}
+
+	public setOutput(output: string) {
+		this.output = output;
+		this.notifyListeners({ type: 'output', id: '', output });
+	}
+
+	public clearOutput() {
+		this.output = '';
+		this.notifyListeners({ type: 'output', id: '', output: '' });
 	}
 }
 

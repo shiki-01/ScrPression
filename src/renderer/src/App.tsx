@@ -208,6 +208,7 @@ const App: React.FC = () => {
 	}, [draggingBlock]);
 
 	const [idList, setIdList] = useState<string[]>([]);
+	const [output, setOutput] = useState('');
 
 	useEffect(() => {
 		const store = BlockStore.getInstance();
@@ -224,6 +225,9 @@ const App: React.FC = () => {
 				case 'clear':
 				case 'initialize':
 					setIdList(store.getBlocks().idList);
+					break;
+				case 'output':
+					setOutput(event.output || '');
 					break;
 			}
 		});
@@ -345,7 +349,11 @@ const App: React.FC = () => {
 							</button>
 						</div>
 					</div>
-					<div className="h-full w-full overflow-auto bg-slate-800 p-5 text-slate-50"></div>
+					<div className="h-full w-full overflow-auto bg-slate-800 p-5 text-slate-50">
+						{output.split('\n').map((line, i) => (
+							<p key={i}>{line}</p>
+						))}
+					</div>
 				</div>
 			</div>
 		</main>
