@@ -111,9 +111,11 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 					const parentBlock = store.getBlock(store.getBlock(content.id)!.parentId) as BlockType;
 					const parentPosition = {
 						x: parentBlock.position.x,
-						y: parentBlock.positi;on.y
-					}
-					store.updateBlock(content.id, { position: { x: parentPosition.x, y: parentPosition.y + 42 } });
+						y: parentBlock.position.y
+					};
+					store.updateBlock(content.id, {
+						position: { x: parentPosition.x, y: parentPosition.y + 42 }
+					});
 				} else {
 					store.updateBlock(content.id, { position: finalPosition });
 				}
