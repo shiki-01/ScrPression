@@ -57,9 +57,34 @@ class BlockStore {
 
 			this.blocks = newBlocks;
 
-			console.log(partialBlock, updatedBlock);
 			this.notifyListeners({ type: 'update', id, block: updatedBlock });
 		}
+	}
+
+	public updateZIndex(id: string) {
+		const newBlocks = new Map(this.blocks);
+		const newIdList = [...this.idList];
+		const maxZIndex = newIdList.length;
+
+		const block = newBlocks.get(id);
+		if (block) {
+			const currentZIndex = block.zIndex;
+			block.zIndex = maxZIndex;
+			newBlocks.set(id, block);
+
+			newIdList.forEach((blockId) => {
+				if (blockId !== id) {
+					const otherBlock = newBlocks.get(blockId);
+					if (otherBlock && otherBlock.zIndex > currentZIndex) {
+						otherBlock.zIndex -= 1;
+						newBlocks.set(blockId, otherBlock);
+					}
+				}
+			});
+		}
+
+		this.blocks = newBlocks;
+		this.notifyListeners({ type: 'update', id, block: block });
 	}
 
 	public getBlock(id: string): BlockType | undefined {

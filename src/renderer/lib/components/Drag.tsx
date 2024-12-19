@@ -54,6 +54,7 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 				store.removeBlock(content.id);
 			} else {
 				store.updateBlock(content.id, { position: finalPosition });
+				store.updateZIndex(content.id);
 				onEnd(finalPosition);
 			}
 
@@ -94,7 +95,7 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 		<div
 			ref={blockRef}
 			className="cancel fixed"
-			style={{ zIndex: content.zIndex, left: position.x, top: position.y }}
+			style={{ zIndex: 9999, left: position.x, top: position.y }}
 		>
 			<div
 				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
