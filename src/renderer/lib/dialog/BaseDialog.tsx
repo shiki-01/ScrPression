@@ -59,7 +59,7 @@ const baseDialog: React.FC<AddBlockProps> = ({ onClose }) => {
 						<p className="text-sm">
 							<a
 								className="text-blue-500 underline"
-								href="https://github.com/shiki-01/ScrPression/releases/tag/v1.0.1-beta"
+								href="https://github.com/shiki-01/ScrPression/releases/tag/v1.0.2-beta"
 								onClick={handleLinkClick}
 							>
 								GitHub のリリースページ ➚

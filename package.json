@@ -1,6 +1,6 @@
 {
 	"name": "scrpression",
-	"version": "1.0.1-beta",
+	"version": "1.0.2-beta",
 	"type": "module",
 	"main": "out/main/index.js",
 	"scripts": {
