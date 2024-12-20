@@ -5,6 +5,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useBlocksStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 import { path } from '$lib/utils/path';
+import AutoResizeInput from './AutoResizeInput';
 
 interface DragProps {
 	content: BlockType;
@@ -163,6 +164,10 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 		updateSize();
 	}, []);
 
+	const getPath = (isFlag: boolean, size: { width: number, height: number }) => {
+		return path(isFlag, size);
+	}
+
 	return (
 		<div
 			ref={blockRef}
@@ -230,19 +235,19 @@ const Drag: React.FC<DragProps> = ({ content, initialPosition, onEnd }) => {
 									<div className="flex flex-row items-center justify-center gap-1.5">
 										<div className="whitespace-nowrap">{item.content.title}</div>
 										<div
-											className="flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
+											className="flex items-center justify-center rounded-full border-2 px-2"
 											style={{
 												backgroundColor: ColorPalette[getColor(content.type)].text,
 												borderColor: ColorPalette[getColor(content.type)].border
 											}}
 										>
-											<input
+											<AutoResizeInput
+											    initialValue={item.content.value}
 												type="text"
 												className="bg-transparent text-slate-900"
-												style={{ width: `${item.content.value.length + 1}ch` }}
-												onChange={(e) => {
-													e.target.style.width = `${e.target.value.length + 1}ch`;
-													setWidth(blockRef.current!.offsetWidth);
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+													//e.target.style.width = `${e.target.value.length + 1}ch`;
+													//setWidth(blockRef.current!.offsetWidth);
 												}}
 											/>
 										</div>

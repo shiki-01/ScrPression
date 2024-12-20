@@ -7,6 +7,7 @@ import { ColorPalette, getColor } from '$lib/utils/color';
 import useDrag from '$lib/utils/useDrag';
 import { BlockStore } from '$lib/block/store';
 import { path } from '$lib/utils/path';
+import AutoResizeInput from '$lib/components/AutoResizeInput';
 
 interface BlockProps {
 	id: string;
@@ -112,8 +113,7 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 		return path(isFlag, size);
 	}, [size.width, size.height, isFlag]);
 
-	const { updateContent, getBlock, draggingBlock, setDraggingBlock, clearDraggingBlock } =
-		useBlocksStore();
+	const { draggingBlock, setDraggingBlock, clearDraggingBlock } = useBlocksStore();
 
 	useDrag(blockRef, {
 		bounds: 'parent',
@@ -143,7 +143,7 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 			blockContent.position.x = block.position.x;
 			blockContent.position.y = block.position.y;
 		}
-	}, [getBlock, blockContent.id]);
+	}, [blockContent.id]);
 
 	useEffect(() => {
 		const unsubscribe = draggingStore.subscribe((state: DraggingStore) => {});
@@ -261,20 +261,18 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 									<div className="flex flex-row items-center justify-center gap-1.5">
 										<div className="whitespace-nowrap">{item.content.title}</div>
 										<div
-											className="field flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
+											className="field h-full flex items-center justify-center rounded-full border-2 px-2"
 											style={{
 												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 												borderColor: ColorPalette[getColor(blockContent.type)].border
 											}}
 										>
-											<input
+											<AutoResizeInput
+											initialValue={item.content.value}
 												type="text"
-												className="bg-transparent text-slate-900"
-												style={{ width: `${item.content.value.length + 1}ch` }}
-												onChange={(e) => {
-													e.target.style.width = `${e.target.value.length + 1}ch`;
+												className="bg-transparent text-slate-900 focus:outline-none"
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 													const value = e.currentTarget.value;
-													console.log(value);
 													store.updateValue(blockContent.id, item.id, value);
 												}}
 											/>

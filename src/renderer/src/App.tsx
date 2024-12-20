@@ -168,6 +168,46 @@ const App: React.FC = () => {
 		zIndex: 0
 	};
 
+	const content4: BlockType = {
+		id: '',
+		title: 'change scene',
+		output: 'SceneManager.LoadScene(“${sceneName}“,LoadSceneMode.Single);',
+		type: 'works',
+		contents: [
+			{
+				id: 'sceneName',
+				type: 'value',
+				content: {
+					title: 'Name',
+					value: '',
+					placeholder: 'Name'
+				}
+			}
+		],
+		connections: {
+			input: {
+				x: 16,
+				y: 0
+			},
+			output: {
+				x: 16,
+				y: 0
+			}
+		},
+		position: {
+			x: 10,
+			y: 10
+		},
+		size: {
+			width: 200,
+			height: 100
+		},
+		childId: '',
+		parentId: '',
+		depth: 0,
+		zIndex: 0
+	}
+
 	const content5: BlockType = {
 		id: '',
 		title: 'Start',
@@ -198,7 +238,7 @@ const App: React.FC = () => {
 		zIndex: 0
 	};
 
-	const listContents = [content, content2, content3, content5];
+	const listContents = [content, content2, content3, content4, content5];
 
 	const lists = blockListStore((state) => state.blocklist);
 
