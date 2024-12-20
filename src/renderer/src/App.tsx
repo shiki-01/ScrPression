@@ -1,8 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
-import List from '$lib/components/List';
-import Block from '$lib/components/Block';
-import Drag from '$lib/components/Drag';
+import Block from '$lib/components/BaseBlock';
 import ContextMenu from '$lib/components/ContextMenu';
 import { blockListStore, useBlocksStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
@@ -172,7 +170,7 @@ const App: React.FC = () => {
 		id: '',
 		title: 'change scene',
 		output: 'SceneManager.LoadScene(“${sceneName}“,LoadSceneMode.Single);',
-		type: 'works',
+		type: 'composition',
 		contents: [
 			{
 				id: 'sceneName',
@@ -206,7 +204,7 @@ const App: React.FC = () => {
 		parentId: '',
 		depth: 0,
 		zIndex: 0
-	}
+	};
 
 	const content5: BlockType = {
 		id: '',
@@ -380,14 +378,15 @@ const App: React.FC = () => {
 			>
 				<div className="block-list relative flex overflow-hidden h-full w-full select-none flex-col items-start gap-5 bg-slate-200 p-5">
 					{lists.map((list, i) => (
-						<List key={i} content={list} />
+						<Block type"'lis"' key={i} id={list.id} ListContent={list} />
 					))}
 				</div>
 				<div className="grid grid-rows-[1fr_250px]">
 					<div className="relative h-full w-full overflow-hidden">
-						{dragging !== '' && BlockStore.getInstance().getBlock(dragging) && (
-							<Drag
-								content={BlockStore.getInstance().getBlock(dragging) as BlockType}
+						{dragging !== '' && BlockStore.getInstance().getBlock(dragging)?.id && (
+							<Block
+								type='drag'
+								id={BlockStore.getInstance().getBlock(dragging)?.id || ''}
 								initialPosition={initialPosition}
 								onEnd={() => {}}
 							/>
@@ -416,7 +415,7 @@ const App: React.FC = () => {
 							}}
 						>
 							{idList.map((id) => {
-								return dragging !== id && <Block key={id} id={id} />;
+								return dragging !== id && <Block key={id} type="block" id={id} />;
 							})}
 						</div>
 						<div className="trash absolute bottom-2 right-2 text-slate-400 transition-colors duration-300 hover:text-slate-500">

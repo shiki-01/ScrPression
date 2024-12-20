@@ -1,8 +1,7 @@
 import { Icon } from '@iconify/react';
 import { BlockType } from '$lib/block/type';
-import { draggingStore, useBlocksStore } from '$lib/store';
+import { useBlocksStore } from '$lib/store';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { DraggingStore } from '$lib/type/store';
 import { ColorPalette, getColor } from '$lib/utils/color';
 import useDrag from '$lib/utils/useDrag';
 import { BlockStore } from '$lib/block/store';
@@ -18,8 +17,8 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 	const store = BlockStore.getInstance();
 
 	const blockRef = useRef<HTMLDivElement>(null);
-	const [content, setContent] = useState<BlockType>(store.getBlock(id)!);
-	const [blockContent, setBlockContent] = useState<BlockType>(content);
+	const content = store.getBlock(id) as BlockType;
+	const [blockContent, setBlockContent] = useState<BlockType>(content || ({} as BlockType));
 	const [size, setSize] = useState(blockContent.size);
 
 	useEffect(() => {
@@ -35,11 +34,12 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 				}
 			} else {
 				switch (event.type) {
-					case 'remove':
+					case 'remove': {
 						const block = store.getBlock(id);
 						if (block) {
 							setBlockContent(block);
 						}
+					}
 				}
 			}
 		});
@@ -143,14 +143,6 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 			blockContent.position.x = block.position.x;
 			blockContent.position.y = block.position.y;
 		}
-	}, [blockContent.id]);
-
-	useEffect(() => {
-		const unsubscribe = draggingStore.subscribe((state: DraggingStore) => {});
-
-		return () => {
-			unsubscribe();
-		};
 	}, [blockContent.id]);
 
 	useEffect(() => {
@@ -261,14 +253,14 @@ const Block: React.FC<BlockProps> = ({ id }) => {
 									<div className="flex flex-row items-center justify-center gap-1.5">
 										<div className="whitespace-nowrap">{item.content.title}</div>
 										<div
-											className="field h-full flex items-center justify-center rounded-full border-2 px-2"
+											className="field flex h-full items-center justify-center rounded-full border-2 px-2"
 											style={{
 												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 												borderColor: ColorPalette[getColor(blockContent.type)].border
 											}}
 										>
 											<AutoResizeInput
-											initialValue={item.content.value}
+												initialValue={item.content.value}
 												type="text"
 												className="bg-transparent text-slate-900 focus:outline-none"
 												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {

@@ -14,12 +14,10 @@ const List: React.FC<ListProps> = ({ content }) => {
 	const [listHeight, setListHeight] = useState(58);
 	const [isFlag, setIsFlag] = useState(false);
 
-	const { draggingBlock, setDraggingBlock, getDraggingBlock, clearDraggingBlock } =
-		useBlocksStore();
+	const { setDraggingBlock } = useBlocksStore();
 
 	const blockRef = useRef<HTMLDivElement>(null);
 
-	const [isDragging, setIsDragging] = useState(false);
 	const blockAddedRef = useRef(false);
 
 	useEffect(() => {
@@ -34,7 +32,6 @@ const List: React.FC<ListProps> = ({ content }) => {
 	};
 
 	const handlePointerDown = () => {
-		setIsDragging(true);
 		blockAddedRef.current = false;
 		window.addEventListener('pointermove', handlePointerMove);
 		window.addEventListener('pointerup', handlePointerUp);
@@ -50,7 +47,6 @@ const List: React.FC<ListProps> = ({ content }) => {
 	const handlePointerUp = () => {
 		window.removeEventListener('pointermove', handlePointerMove);
 		window.removeEventListener('pointerup', handlePointerUp);
-		setIsDragging(false);
 	};
 
 	const updateSize = () => {
