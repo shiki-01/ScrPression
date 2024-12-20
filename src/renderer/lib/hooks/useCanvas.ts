@@ -28,7 +28,7 @@ const useCanvas = (node: HTMLDivElement | null) => {
 			node.style.transform = `translate(${translate.x}px, ${translate.y}px)`;
 		};
 
-		const onMouseUp = (event: PointerEvent) => {
+		const onMouseUp = () => {
 			setIsDragging(false);
 			node.style.cursor = 'grab';
 		};

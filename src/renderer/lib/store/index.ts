@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
 import { BlockType } from '$lib/block/type';
-import { DraggingStore } from '$lib/type/store';
 
 type Store = {
 	contents: Map<string, BlockType>;
@@ -85,9 +84,4 @@ const blockListStore = create<BlockListStore>(() => ({
 	blocklist: []
 }));
 
-const draggingStore = create<DraggingStore>(() => ({
-	id: '',
-	offset: { x: 0, y: 0 }
-}));
-
-export { useBlocksStore, blockListStore, draggingStore };
+export { useBlocksStore, blockListStore };

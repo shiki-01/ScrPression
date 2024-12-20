@@ -1,12 +1,15 @@
-import { Icon } from '@iconify/react';
-import { BlockType } from '$lib/block/type';
-import { useBlocksStore } from '$lib/store';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ColorPalette, getColor } from '$lib/utils/color';
-import useDrag from '$lib/hooks/useDrag';
-import { BlockStore } from '$lib/block/store';
-import { path } from '$lib/utils/path';
+
+import { Icon } from '@iconify/react';
 import AutoResizeInput from '$lib/components/AutoResizeInput';
+
+import { BlockType } from '$lib/block/type';
+import { BlockStore } from '$lib/block/store';
+import { useBlocksStore } from '$lib/store';
+
+import { ColorPalette, getColor } from '$lib/utils/color';
+import { path } from '$lib/utils/path';
+import useDrag from '$lib/hooks/useDrag';
 
 interface BlockProps {
 	id: string;
@@ -135,6 +138,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	}, [id]);
 
 	useEffect(() => {
+		if (type !== 'drag') return;
 		const onMouseMove = (event: PointerEvent) => {
 			if (!isDragging.current) return;
 

@@ -14,12 +14,12 @@
 		"outDir": "build",
 		"baseUrl": ".",
 		"paths": {
-			"$lib": [
-				"./src/renderer/lib"
-			],
-			"$lib/*": [
-				"./src/renderer/lib/*"
-			]
+          "$lib": [
+            "./src/renderer/lib"
+          ],
+          "$lib/*": [
+            "./src/renderer/lib/*"
+          ]
 		}
 	},
 	"include": [
