@@ -26,7 +26,6 @@
 		"@types/react-dom": "^19.0.2",
 		"@types/uuid": "^10.0.0",
 		"autoprefixer": "^10.4.20",
-		"bits-ui": "^0.21.16",
 		"clsx": "^2.1.1",
 		"electron": "^33.2.1",
 		"electron-builder": "^25.1.8",
@@ -44,11 +43,7 @@
 	},
 	"dependencies": {
 		"@fontsource/m-plus-1": "^5.1.0",
-		"@fontsource/m-plus-1-code": "^5.1.0",
 		"@iconify/react": "^5.1.0",
-		"@iconify/svelte": "^4.1.0",
-		"@neodrag/svelte": "^2.0.6",
-		"@sveltejs/adapter-static": "^3.0.6",
 		"@tailwindcss/forms": "^0.5.9",
 		"@tailwindcss/typography": "^0.5.15",
 		"@types/crypto-js": "^4.2.2",
@@ -62,12 +57,10 @@
 		"electron-log": "^5.2.4",
 		"electron-updater": "^6.3.9",
 		"electron-vite": "^2.3.0",
-		"katai": "^0.1.5",
 		"nanostores": "^0.11.3",
 		"pako": "^2.1.0",
 		"react": "^19.0.0",
 		"react-dom": "^19.0.0",
-		"svelte-sonner": "^0.3.28",
 		"uuid": "^11.0.3",
 		"zustand": "^5.0.2"
 	}
