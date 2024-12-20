@@ -16,7 +16,7 @@ const useCanvas = (node: HTMLDivElement | null) => {
 			setIsDragging(true);
 			setStartPos({ x: event.clientX - translate.x, y: event.clientY - translate.y });
 			node.style.cursor = 'grabbing';
-		}
+		};
 
 		const onMouseMove = (event: PointerEvent) => {
 			if (!isDragging) return;
@@ -26,12 +26,12 @@ const useCanvas = (node: HTMLDivElement | null) => {
 			});
 			store.setCanvasPos({ x: translate.x, y: translate.y });
 			node.style.transform = `translate(${translate.x}px, ${translate.y}px)`;
-		}
+		};
 
 		const onMouseUp = (event: PointerEvent) => {
 			setIsDragging(false);
 			node.style.cursor = 'grab';
-		}
+		};
 
 		node.style.cursor = 'grab';
 
@@ -47,6 +47,6 @@ const useCanvas = (node: HTMLDivElement | null) => {
 	}, [node, isDragging, translate]);
 
 	return {};
-}
+};
 
 export { useCanvas };
