@@ -3,29 +3,27 @@ import { BlockType } from '$lib/block/type';
 import { useBlocksStore } from '$lib/store';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ColorPalette, getColor } from '$lib/utils/color';
-import useDrag from '$lib/utils/useDrag';
+import useDrag from '$lib/hooks/useDrag';
 import { BlockStore } from '$lib/block/store';
 import { path } from '$lib/utils/path';
 import AutoResizeInput from '$lib/components/AutoResizeInput';
 
 interface BlockProps {
 	id: string;
-	type: 'block' | 'list' | 'drag';
+	type: 'block' | 'drag';
 	initialPosition?: { x: number; y: number };
 	onEnd?: (position: { x: number; y: number }) => void;
-	ListContent?: BlockType;
 }
 
-const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd, ListContent }) => {
+const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	const { draggingBlock, setDraggingBlock, clearDraggingBlock, getDraggingBlock } =
 		useBlocksStore();
 	const store = BlockStore.getInstance();
 
-	const content = type === 'list' ? (ListContent as BlockType) : (store.getBlock(id) as BlockType);
+	const content = store.getBlock(id) as BlockType;
 	const blockRef = useRef<HTMLDivElement>(null);
-	const blockAddedRef = useRef(false);
 	const [blockContent, setBlockContent] = useState<BlockType>(content);
-	const [size, setSize] = useState(type === 'list' ? { width: 0, height: 0 } : blockContent.size);
+	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(false);
 	const isDragging = useRef(true);
 	const offset = draggingBlock ? draggingBlock.offset : { x: 0, y: 0 };
@@ -66,32 +64,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd, ListCon
 			}
 		});
 		return children;
-	};
-
-	const addBlock = (event: PointerEvent) => {
-		const blockStore = BlockStore.getInstance();
-		const newId = blockStore.addBlock(content);
-		const offset = blockRef.current!.getBoundingClientRect();
-		setDraggingBlock(newId, { x: event.clientX - offset.left, y: event.clientY - offset.top });
-	};
-
-	const handlePointerDown = () => {
-		if (type !== 'list') return;
-		blockAddedRef.current = false;
-		window.addEventListener('pointermove', handlePointerMove);
-		window.addEventListener('pointerup', handlePointerUp);
-	};
-
-	const handlePointerMove = (event: PointerEvent) => {
-		if (!blockAddedRef.current) {
-			addBlock(event);
-			blockAddedRef.current = true;
-		}
-	};
-
-	const handlePointerUp = () => {
-		window.removeEventListener('pointermove', handlePointerMove);
-		window.removeEventListener('pointerup', handlePointerUp);
 	};
 
 	const formatOutput = (blocks: BlockType[]) => {
@@ -351,19 +323,18 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd, ListCon
 		<div
 			ref={blockRef}
 			className="cancel"
-			onPointerDown={handlePointerDown}
 			style={{
-				position: type === 'drag' ? 'fixed' : type === 'list' ? 'relative' : 'absolute',
+				position: type === 'drag' ? 'fixed' : 'absolute',
 				zIndex: type === 'drag' ? 100 : blockContent.zIndex,
-				left: type === 'list' ? 0 : type === 'drag' ? position.x : blockContent.position.x,
-				top: type === 'list' ? 0 : type === 'drag' ? position.x : blockContent.position.y
+				left: type === 'drag' ? position.x : blockContent.position.x,
+				top: type === 'drag' ? position.y : blockContent.position.y
 			}}
 		>
 			<div
 				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
 				data-id={blockContent.id}
 			>
-				{type !== 'list' && blockContent.connections.input && (
+				{blockContent.connections.input && (
 					<span
 						data-id={blockContent.id}
 						className="input absolute h-2 w-6"
@@ -373,7 +344,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd, ListCon
 						}}
 					></span>
 				)}
-				{type !== 'list' && blockContent.connections.output && (
+				{blockContent.connections.output && (
 					<span
 						data-id={blockContent.id}
 						className="output absolute h-2 w-6"
@@ -393,16 +364,11 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd, ListCon
 					>
 						<path
 							d={getPath()}
-							fill={
-								ColorPalette[getColor(type === 'list' ? content.type || '' : blockContent.type)].bg
-							}
-							stroke={
-								ColorPalette[getColor(type === 'list' ? content.type || '' : blockContent.type)]
-									.border
-							}
+							fill={ColorPalette[getColor(blockContent.type)].bg}
+							stroke={ColorPalette[getColor(blockContent.type)].border}
 							strokeWidth="2"
 							style={{
-								filter: `drop-shadow(0 4px 0 ${ColorPalette[getColor(type === 'list' ? content.type || '' : blockContent.type)].border})`
+								filter: `drop-shadow(0 4px 0 ${ColorPalette[getColor(blockContent.type)].border})`
 							}}
 						></path>
 					</svg>
@@ -410,42 +376,39 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd, ListCon
 				<div
 					className="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
 					style={{
-						color:
-							ColorPalette[getColor(type === 'list' ? ListContent?.type || '' : blockContent.type)]
-								.text
+						color: ColorPalette[getColor(blockContent.type)].text
 					}}
 				>
 					<div className="whitespace-nowrap font-bold">{blockContent.title}</div>
 					<div className="flex flex-row gap-2 align-middle">
-						{type !== 'list' &&
-							blockContent.contents.map((item, index) => (
-								<React.Fragment key={index}>
-									{item.type === 'separator' ? (
-										<div className="h-5 w-[1px] bg-blue-950"></div>
-									) : (
-										<div className="flex flex-row items-center justify-center gap-1.5">
-											<div className="whitespace-nowrap">{item.content.title}</div>
-											<div
-												className="field flex h-full items-center justify-center rounded-full border-2 px-2"
-												style={{
-													backgroundColor: ColorPalette[getColor(blockContent.type)].text,
-													borderColor: ColorPalette[getColor(blockContent.type)].border
+						{blockContent.contents.map((item, index) => (
+							<React.Fragment key={index}>
+								{item.type === 'separator' ? (
+									<div className="h-5 w-[1px] bg-blue-950"></div>
+								) : (
+									<div className="flex flex-row items-center justify-center gap-1.5">
+										<div className="whitespace-nowrap">{item.content.title}</div>
+										<div
+											className="field flex h-full items-center justify-center rounded-full border-2 px-2"
+											style={{
+												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
+												borderColor: ColorPalette[getColor(blockContent.type)].border
+											}}
+										>
+											<AutoResizeInput
+												initialValue={item.content.value}
+												type="text"
+												className="bg-transparent text-slate-900 focus:outline-none"
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+													const value = e.currentTarget.value;
+													store.updateValue(blockContent.id, item.id, value);
 												}}
-											>
-												<AutoResizeInput
-													initialValue={item.content.value}
-													type="text"
-													className="bg-transparent text-slate-900 focus:outline-none"
-													onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-														const value = e.currentTarget.value;
-														store.updateValue(blockContent.id, item.id, value);
-													}}
-												/>
-											</div>
+											/>
 										</div>
-									)}
-								</React.Fragment>
-							))}
+									</div>
+								)}
+							</React.Fragment>
+						))}
 					</div>
 					{isFlag && (
 						<button

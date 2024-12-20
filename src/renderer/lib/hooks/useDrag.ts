@@ -23,9 +23,9 @@ const useDrag = (
 
 		const onMouseDown = (event: PointerEvent) => {
 			const elements = document.elementsFromPoint(event.clientX, event.clientY);
-			const shouldRemove = elements.some((element) => element.classList.contains('field'));
+			const shouldReturn = elements.some((element) => element.classList.contains('field'));
 
-			if (shouldRemove) return;
+			if (shouldReturn) return;
 
 			setIsDragging(true);
 			startPos.current = { x: event.clientX, y: event.clientY };
@@ -34,6 +34,7 @@ const useDrag = (
 				y: event.clientY - element.getBoundingClientRect().top
 			};
 			element.style.cursor = 'grabbing';
+			console.log('onStart');
 			params.onStart(event);
 		};
 

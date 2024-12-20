@@ -1,11 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
+import List from '$lib/components/List';
 import Block from '$lib/components/BaseBlock';
 import ContextMenu from '$lib/components/ContextMenu';
 import { blockListStore, useBlocksStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 import type { BlockType } from '$lib/block/type';
-import { useCanvas } from '$lib/utils/useCanvas';
+import { useCanvas } from '$lib/hooks/useCanvas';
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
@@ -282,7 +283,7 @@ const App: React.FC = () => {
 		setBottom(bottom + 100);
 		setLeft(left - 100);
 		setRight(right + 100);
-	}
+	};
 
 	useCanvas(canvas.current);
 
@@ -376,16 +377,16 @@ const App: React.FC = () => {
 				}}
 				className="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden"
 			>
-				<div className="block-list relative flex overflow-hidden h-full w-full select-none flex-col items-start gap-5 bg-slate-200 p-5">
+				<div className="block-list relative flex h-full w-full select-none flex-col items-start gap-5 overflow-hidden bg-slate-200 p-5">
 					{lists.map((list, i) => (
-						<Block type"'lis"' key={i} id={list.id} ListContent={list} />
+						<List key={i} content={list} />
 					))}
 				</div>
 				<div className="grid grid-rows-[1fr_250px]">
 					<div className="relative h-full w-full overflow-hidden">
 						{dragging !== '' && BlockStore.getInstance().getBlock(dragging)?.id && (
 							<Block
-								type='drag'
+								type="drag"
 								id={BlockStore.getInstance().getBlock(dragging)?.id || ''}
 								initialPosition={initialPosition}
 								onEnd={() => {}}
