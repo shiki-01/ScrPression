@@ -3,7 +3,6 @@ import React, { useLayoutEffect, useRef, useState } from 'react';
 interface AutoResizeInputProps {
 	initialValue: string;
 	style?: React.CSSProperties;
-
 	[key: string]: any;
 }
 

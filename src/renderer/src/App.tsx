@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import List from '$lib/components/List';
 import Block from '$lib/components/BaseBlock';
 import ContextMenu from '$lib/components/ContextMenu';
-import { blockListStore, useBlocksStore } from '$lib/store';
+import { blockListStore, draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 import type { BlockType } from '$lib/block/type';
 import { useCanvas } from '$lib/hooks/useCanvas';
@@ -13,7 +13,7 @@ const App: React.FC = () => {
 	const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
-	const { draggingBlock } = useBlocksStore();
+	const { draggingBlock } = draggingStore();
 
 	const toggleAdd = () => {
 		setIsAdd((prev) => !prev);
@@ -301,9 +301,6 @@ const App: React.FC = () => {
 					break;
 				case 'clear':
 				case 'update':
-				case 'initialize':
-					setIdList(store.getBlocks().idList);
-					break;
 				case 'output':
 					setOutput(event.output || '');
 					break;

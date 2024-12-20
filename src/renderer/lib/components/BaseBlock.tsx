@@ -5,7 +5,7 @@ import AutoResizeInput from '$lib/components/AutoResizeInput';
 
 import { BlockType } from '$lib/block/type';
 import { BlockStore } from '$lib/block/store';
-import { useBlocksStore } from '$lib/store';
+import { draggingStore } from '$lib/store';
 
 import { ColorPalette, getColor } from '$lib/utils/color';
 import { path } from '$lib/utils/path';
@@ -19,8 +19,7 @@ interface BlockProps {
 }
 
 const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
-	const { draggingBlock, setDraggingBlock, clearDraggingBlock, getDraggingBlock } =
-		useBlocksStore();
+	const { draggingBlock, setDraggingBlock, clearDraggingBlock, getDraggingBlock } = draggingStore();
 	const store = BlockStore.getInstance();
 
 	const content = store.getBlock(id) as BlockType;

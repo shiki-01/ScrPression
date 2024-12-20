@@ -1,10 +1,8 @@
 import type { BlockType, ReadonlyBlockType } from '$lib/block/type';
-import { BlockEventEmitter } from '$lib/block/event';
 import { v4 as uuid } from 'uuid';
 
 class Block {
 	private readonly _block: BlockType;
-	private eventEmitter: BlockEventEmitter;
 
 	constructor(readonlyBlock: ReadonlyBlockType) {
 		const id = uuid();
@@ -18,7 +16,6 @@ class Block {
 			depth: 0,
 			zIndex: 0
 		};
-		this.eventEmitter = BlockEventEmitter.getInstance();
 	}
 
 	public get get(): Readonly<BlockType> {

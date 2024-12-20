@@ -2,7 +2,7 @@ import { BlockType } from '$lib/block/type';
 import { Icon } from '@iconify/react';
 import { ColorPalette, getColor } from '$lib/utils/color';
 import React, { useEffect, useRef, useState } from 'react';
-import { useBlocksStore } from '$lib/store';
+import { draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 
 interface ListProps {
@@ -14,7 +14,7 @@ const List: React.FC<ListProps> = ({ content }) => {
 	const [listHeight, setListHeight] = useState(58);
 	const [isFlag, setIsFlag] = useState(false);
 
-	const { setDraggingBlock } = useBlocksStore();
+	const { setDraggingBlock } = draggingStore();
 
 	const blockRef = useRef<HTMLDivElement>(null);
 

@@ -1,5 +1,3 @@
-import { Block } from './class';
-
 type Position = {
 	x: number;
 	y: number;
@@ -56,9 +54,9 @@ interface BlockType extends ReadonlyBlockType {
 }
 
 type BlockStoreEvent = {
-	type: 'add' | 'remove' | 'update' | 'clear' | 'output';
+	type: 'add' | 'remove' | 'update' | 'clear' | 'output' | 'canvas';
 	id?: string;
-	block?: Block;
+	block?: BlockType | undefined;
 	output?: string;
 };
 

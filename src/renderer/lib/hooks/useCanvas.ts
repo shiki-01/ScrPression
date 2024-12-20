@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { useBlocksStore } from '$lib/store';
+import { draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 
 const useCanvas = (node: HTMLDivElement | null) => {
 	const [isDragging, setIsDragging] = useState(false);
 	const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 	const [translate, setTranslate] = useState({ x: 0, y: 0 });
-	const { getDraggingBlock } = useBlocksStore();
+	const { getDraggingBlock } = draggingStore();
 	const store = BlockStore.getInstance();
 
 	useEffect(() => {

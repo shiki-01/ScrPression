@@ -1,4 +1,4 @@
-import { BlockType } from './type';
+import { BlockStoreEvent, BlockType } from './type';
 import { Block } from '$lib/block/class';
 
 class BlockStore {
@@ -7,9 +7,7 @@ class BlockStore {
 	private idList: string[] = [];
 	private output: string = '';
 	private canvasPos: { x: number; y: number } = { x: 0, y: 0 };
-	private listeners: Set<
-		(event: { type: string; id: string; block?: BlockType; output?: string }) => void
-	> = new Set();
+	private listeners: Set<(event: BlockStoreEvent) => void> = new Set();
 
 	private constructor() {
 		this.clearBlocks();
@@ -151,14 +149,12 @@ class BlockStore {
 		this.notifyListeners({ type: 'clear', id: '' });
 	}
 
-	public subscribe(
-		listener: (event: { type: string; id: string; block?: BlockType; output?: string }) => void
-	) {
+	public subscribe(listener: (event: BlockStoreEvent) => void) {
 		this.listeners.add(listener);
 		return () => this.listeners.delete(listener);
 	}
 
-	private notifyListeners(event: { type: string; id: string; block?: BlockType; output?: string }) {
+	private notifyListeners(event: BlockStoreEvent) {
 		this.listeners.forEach((listener) => listener(event));
 	}
 
