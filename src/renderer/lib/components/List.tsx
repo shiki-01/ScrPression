@@ -1,28 +1,98 @@
 import { BlockType } from '$lib/block/type';
 import { Icon } from '@iconify/react';
 import { ColorPalette, getColor } from '$lib/utils/color';
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
+import { ListStore } from '$lib/list/store';
+import { path } from '$lib/utils/path';
+import AutoResizeInput from '$lib/components/AutoResizeInput';
 
 interface ListProps {
-	content: BlockType;
+	id: string;
 }
 
-const List: React.FC<ListProps> = ({ content }) => {
-	const [listWidth, setListWidth] = useState(200);
-	const [listHeight, setListHeight] = useState(58);
+const List: React.FC<ListProps> = ({ id }) => {
+	const listStore = ListStore.getInstance();
+
+	const content = listStore.getList(id) as BlockType;
+	const blockRef = useRef<HTMLDivElement>(null);
+	const [blockContent, setBlockContent] = useState<BlockType>(listStore.getList(id) as BlockType);
+	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(false);
 
 	const { setDraggingBlock } = draggingStore();
 
-	const blockRef = useRef<HTMLDivElement>(null);
-
 	const blockAddedRef = useRef(false);
+
+	const updateSize = useCallback(() => {
+		const store = ListStore.getInstance();
+		if (blockRef.current) {
+			const rect = blockRef.current.getBoundingClientRect();
+			const newWidth = rect.width;
+			const newHeight = rect.height + 8;
+
+			if (newWidth !== size.width || newHeight !== size.height) {
+				store.updateList(id, {
+					size: { width: newWidth, height: newHeight }
+				});
+				const newBlock = store.getList(blockContent.id);
+				if (newBlock) {
+					setBlockContent(newBlock);
+				}
+			}
+		}
+	}, [blockContent.id, size]);
+
+	const getPath = useCallback(() => {
+		return path(isFlag, size);
+	}, [size.width, size.height, isFlag]);
 
 	useEffect(() => {
 		setIsFlag(content.type === 'flag');
 	}, [content.type]);
+
+	useEffect(() => {
+		const store = ListStore.getInstance();
+
+		setSize(blockContent.size);
+
+		const unsubscribe = store.subscribe((event) => {
+			if (event.id === id && event.type === 'update') {
+				if (event.block?.size) {
+					setSize(event.block.size);
+				}
+			}
+		});
+
+		return () => {
+			unsubscribe();
+		};
+	}, [id]);
+
+	useEffect(() => {
+		updateSize();
+	}, [blockContent.contents, updateSize]);
+
+	useEffect(() => {
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				if (entry.target === blockRef.current) {
+					requestAnimationFrame(() => {
+						updateSize();
+					});
+				}
+			}
+		});
+
+		if (blockRef.current) {
+			resizeObserver.observe(blockRef.current);
+		}
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	}, [updateSize]);
 
 	const addBlock = (event: PointerEvent) => {
 		const blockStore = BlockStore.getInstance();
@@ -49,17 +119,6 @@ const List: React.FC<ListProps> = ({ content }) => {
 		window.removeEventListener('pointerup', handlePointerUp);
 	};
 
-	const updateSize = () => {
-		if (blockRef.current) {
-			setListWidth(blockRef.current.offsetWidth);
-			setListHeight(blockRef.current.offsetHeight + 8);
-		}
-	};
-
-	useEffect(() => {
-		updateSize();
-	}, []);
-
 	return (
 		<div
 			ref={blockRef}
@@ -76,22 +135,18 @@ const List: React.FC<ListProps> = ({ content }) => {
 				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
 					<svg
 						className=""
-						height={listHeight}
+						height={size.height}
+						width={size.width + 2}
 						role="none"
-						width={listWidth + 2}
 						xmlns="http://www.w3.org/2000/svg"
 					>
 						<path
-							d={
-								isFlag
-									? `M 14 2 L 42 2 L ${listWidth - 14} 2 Q ${listWidth} 2 ${listWidth} 14 L ${listWidth} ${listHeight - 18} Q ${listWidth} ${listHeight - 14} ${listWidth - 4} ${listHeight - 14} L 40 ${listHeight - 14} L 40 ${listHeight - 10} Q 40 ${listHeight - 8} 36 ${listHeight - 8} L 20 ${listHeight - 8} Q 16 ${listHeight - 8} 16 ${listHeight - 10} L 16 ${listHeight - 14} L 4 ${listHeight - 14} Q 2 ${listHeight - 14} 2 ${listHeight - 18} L 2 14 Q 2 2 14 2 Z`
-									: `M 4 2 L 14 2 L 14 4 Q 14 8 20 8 L 38 8 Q 42 8 42 4 L 42 2 L ${listWidth - 4} 2 Q ${listWidth} 2 ${listWidth} 4 L ${listWidth} ${listHeight - 18} Q ${listWidth} ${listHeight - 14} ${listWidth - 4} ${listHeight - 14} L 40 ${listHeight - 14} L 40 ${listHeight - 10} Q 40 ${listHeight - 8} 36 ${listHeight - 8} L 20 ${listHeight - 8} Q 16 ${listHeight - 8} 16 ${listHeight - 10} L 16 ${listHeight - 14} L 4 ${listHeight - 14} Q 2 ${listHeight - 14} 2 ${listHeight - 18} L 2 4 Q 2 2 4 2 Z`
-							}
-							fill={ColorPalette[getColor(content.type)].bg}
-							stroke={ColorPalette[getColor(content.type)].border}
+							d={getPath()}
+							fill={ColorPalette[getColor(blockContent.type)].bg}
+							stroke={ColorPalette[getColor(blockContent.type)].border}
 							strokeWidth="2"
 							style={{
-								filter: `drop-shadow(0 4px 0 ${ColorPalette[getColor(content.type)].border})`
+								filter: `drop-shadow(0 4px 0 ${ColorPalette[getColor(blockContent.type)].border})`
 							}}
 						></path>
 					</svg>
@@ -116,14 +171,10 @@ const List: React.FC<ListProps> = ({ content }) => {
 												borderColor: ColorPalette[getColor(content.type)].border
 											}}
 										>
-											<input
+											<AutoResizeInput
+												initialValue={item.content.value}
 												type="text"
-												className="bg-transparent text-slate-900"
-												style={{ width: `${item.content.value.length + 1}ch` }}
-												onChange={(e) => {
-													e.target.style.width = `${e.target.value.length + 1}ch`;
-													setListWidth(blockRef.current!.offsetWidth);
-												}}
+												className="bg-transparent text-slate-900 focus:outline-none"
 											/>
 										</div>
 									</>

@@ -89,6 +89,17 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		store.setOutput(outputText.trim());
 	};
 
+	const overlap = (node: HTMLElement, target: HTMLElement) => {
+		const nodeRect = node.getBoundingClientRect();
+		const targetRect = target.getBoundingClientRect();
+		return !(
+			nodeRect.right < targetRect.left ||
+			nodeRect.left > targetRect.right ||
+			nodeRect.bottom < targetRect.top ||
+			nodeRect.top > targetRect.bottom
+		);
+	};
+
 	useEffect(() => {
 		const unsubscribe = store.subscribe((event) => {
 			if (event.id === id) {
@@ -121,7 +132,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		const store = BlockStore.getInstance();
 
 		setSize(blockContent.size);
-		console.log(type, blockContent);
 
 		const unsubscribe = store.subscribe((event) => {
 			if (event.id === blockContent.id && event.type === 'update') {
@@ -146,40 +156,11 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				y: event.clientY - offset.y
 			};
 
-			const overlap = (node: HTMLElement, target: HTMLElement) => {
-				const nodeRect = node.getBoundingClientRect();
-				const targetRect = target.getBoundingClientRect();
-				return !(
-					nodeRect.right < targetRect.left ||
-					nodeRect.left > targetRect.right ||
-					nodeRect.bottom < targetRect.top ||
-					nodeRect.top > targetRect.bottom
-				);
-			};
-
 			if (store.getBlock(blockContent.id)?.parentId) {
 				const parentBlock = store.getBlock(store.getBlock(blockContent.id)!.parentId) as BlockType;
 
 				store.updateBlock(blockContent.id, { parentId: '' });
 				store.updateBlock(parentBlock.id, { childId: '' });
-			} else {
-				const inputs = document.querySelectorAll('.input');
-				const outputs = document.querySelectorAll('.output');
-
-				inputs.forEach((inputElement) => {
-					outputs.forEach((outputElement) => {
-						const targetID = (outputElement as HTMLElement).dataset.id;
-						if (!targetID || targetID === blockContent.id || store.getBlock(targetID)!.childId)
-							return;
-
-						if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
-							console.log('overlap', targetID, blockContent.id);
-							store.updateBlock(blockContent.id, { parentId: targetID });
-							store.updateBlock(targetID, { childId: blockContent.id });
-							console.log('overlap', store.getBlocks().blocks);
-						}
-					});
-				});
 			}
 
 			if (store.getBlock(blockContent.id)?.childId) {
@@ -224,6 +205,21 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			if (shouldRemove) {
 				store.removeBlock(blockContent.id);
 			} else {
+				const inputs = document.querySelectorAll('.input');
+				const outputs = document.querySelectorAll('.output');
+
+				inputs.forEach((inputElement) => {
+					outputs.forEach((outputElement) => {
+						const targetID = (outputElement as HTMLElement).dataset.id;
+						if (!targetID || targetID === blockContent.id || store.getBlock(targetID)!.childId)
+							return;
+
+						if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
+							store.updateBlock(blockContent.id, { parentId: targetID });
+							store.updateBlock(targetID, { childId: blockContent.id });
+						}
+					});
+				});
 				if (store.getBlock(blockContent.id)?.parentId) {
 					const parentBlock = store.getBlock(
 						store.getBlock(blockContent.id)!.parentId

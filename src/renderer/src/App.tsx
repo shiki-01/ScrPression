@@ -1,10 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import List from '$lib/components/List';
 import Block from '$lib/components/BaseBlock';
 import ContextMenu from '$lib/components/ContextMenu';
-import { blockListStore, draggingStore } from '$lib/store';
+import AddBlock from '$lib/dialog/BaseDialog';
+import { draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
+import { ListStore } from '$lib/list/store';
 import type { BlockType } from '$lib/block/type';
 import { useCanvas } from '$lib/hooks/useCanvas';
 
@@ -71,7 +73,7 @@ const App: React.FC = () => {
 		},
 		size: {
 			width: 200,
-			height: 100
+			height: 58
 		},
 		childId: '',
 		parentId: '',
@@ -115,7 +117,7 @@ const App: React.FC = () => {
 		],
 		size: {
 			width: 200,
-			height: 100
+			height: 58
 		},
 		connections: {
 			input: {
@@ -155,7 +157,7 @@ const App: React.FC = () => {
 		},
 		size: {
 			width: 200,
-			height: 100
+			height: 58
 		},
 		position: {
 			x: 10,
@@ -199,7 +201,7 @@ const App: React.FC = () => {
 		},
 		size: {
 			width: 200,
-			height: 100
+			height: 58
 		},
 		childId: '',
 		parentId: '',
@@ -228,8 +230,8 @@ const App: React.FC = () => {
 			y: 10
 		},
 		size: {
-			width: 200,
-			height: 100
+			width: 130,
+			height: 58
 		},
 		childId: '',
 		parentId: '',
@@ -237,9 +239,20 @@ const App: React.FC = () => {
 		zIndex: 0
 	};
 
-	const listContents = [content, content2, content3, content4, content5];
+	const listContents = useMemo(() => [content, content2, content3, content4, content5], []);
 
-	const lists = blockListStore((state) => state.blocklist);
+	const listStore = ListStore.getInstance();
+
+	let isMounted = false;
+
+	useEffect(() => {
+		if (isMounted) return;
+		listStore.clearList();
+		listContents.map((content) => listStore.addList(content));
+		isMounted = true;
+	}, [listContents]);
+
+	const lists = listStore.getLists();
 
 	const [dragging, setDragging] = useState('');
 	const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
@@ -296,7 +309,6 @@ const App: React.FC = () => {
 			switch (event.type) {
 				case 'add':
 				case 'remove':
-					console.log(store.getBlocks().idList);
 					setIdList(store.getBlocks().idList);
 					break;
 				case 'clear':
@@ -312,10 +324,6 @@ const App: React.FC = () => {
 		};
 	}, []);
 
-	useEffect(() => {
-		blockListStore.setState({ blocklist: listContents });
-	}, []);
-
 	return (
 		<main
 			ref={main}
@@ -324,6 +332,12 @@ const App: React.FC = () => {
 			{isContextMenuOpen && (
 				<ContextMenu position={contextMenuPosition} onClose={() => setIsContextMenuOpen(false)} />
 			)}
+
+			<div
+				className={`fixed left-0 top-0 z-50 transition-opacity ${isAdd ? 'opacity-100' : 'opacity-0'}`}
+			>
+				{isAdd && <AddBlock onClose={toggleAdd} />}
+			</div>
 
 			<div className="flex h-full w-full flex-row justify-between bg-slate-500 px-5">
 				<div className="flex flex-row gap-4">
@@ -376,7 +390,7 @@ const App: React.FC = () => {
 			>
 				<div className="block-list relative flex h-full w-full select-none flex-col items-start gap-5 overflow-hidden bg-slate-200 p-5">
 					{lists.map((list, i) => (
-						<List key={i} content={list} />
+						<List key={i} id={list} />
 					))}
 				</div>
 				<div className="grid grid-rows-[1fr_250px]">

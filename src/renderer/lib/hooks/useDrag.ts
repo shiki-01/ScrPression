@@ -34,7 +34,6 @@ const useDrag = (
 				y: event.clientY - element.getBoundingClientRect().top
 			};
 			element.style.cursor = 'grabbing';
-			console.log('onStart');
 			params.onStart(event);
 		};
 

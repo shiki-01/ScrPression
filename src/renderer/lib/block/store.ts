@@ -45,7 +45,6 @@ class BlockStore {
 		this.blocks = new Map<string, BlockType>(newBlocks);
 		this.idList = [...newIdList];
 
-		console.log('removeBlock', this.blocks, this.idList);
 		this.notifyListeners({ type: 'remove', id });
 	}
 

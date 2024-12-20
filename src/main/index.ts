@@ -1,5 +1,5 @@
 import path from 'path';
-import { app, BrowserWindow, dialog } from 'electron';
+import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import isDev from 'electron-is-dev';
 import pkg from 'electron-updater';
 import electronLog from 'electron-log';
@@ -16,7 +16,7 @@ const appUpdater = () => {
 		return;
 	}
 
-	autoUpdater.on('update-downloaded', (info) => {
+	autoUpdater.on('update-downloaded', () => {
 		dialog
 			.showMessageBox({
 				type: 'info',
@@ -68,4 +68,17 @@ app.on('window-all-closed', () => {
 	if (process.platform !== 'darwin') {
 		app.quit();
 	}
+});
+
+ipcMain.handle('open-link', async (event, url: string) => {
+	await dialog
+		.showMessageBox({
+			type: 'info',
+			title: 'リンクを開きます',
+			message: url,
+			buttons: ['OK']
+		})
+		.then(() => {
+			shell.openExternal(url);
+		});
 });
