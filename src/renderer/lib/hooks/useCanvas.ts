@@ -8,9 +8,11 @@ const useCanvas = (node: HTMLDivElement | null) => {
 	const [translate, setTranslate] = useState({ x: 0, y: 0 });
 	const { getDraggingBlock } = draggingStore();
 	const store = BlockStore.getInstance();
+	const [scale, setScale] = useState(1);
 
 	useEffect(() => {
 		if (!node) return;
+
 		const onMouseDown = (event: PointerEvent) => {
 			if (getDraggingBlock()) return;
 			setIsDragging(true);
@@ -20,12 +22,17 @@ const useCanvas = (node: HTMLDivElement | null) => {
 
 		const onMouseMove = (event: PointerEvent) => {
 			if (!isDragging) return;
-			setTranslate({
-				x: event.clientX - startPos.x,
-				y: event.clientY - startPos.y
-			});
-			store.setCanvasPos({ x: translate.x, y: translate.y });
-			node.style.transform = `translate(${translate.x}px, ${translate.y}px)`;
+			const newX = event.clientX - startPos.x;
+			const newY = event.clientY - startPos.y;
+
+			const maxX = (node.clientWidth * scale) / 2;
+			const maxY = (node.clientHeight * scale) / 2;
+
+			const boundedX = Math.max(-maxX, Math.min(newX, 0));
+			const boundedY = Math.max(-maxY, Math.min(newY, 0));
+
+			setTranslate({ x: boundedX, y: boundedY });
+			store.setCanvasPos({ x: boundedX, y: boundedY });
 		};
 
 		const onMouseUp = () => {

@@ -7,6 +7,7 @@ class BlockStore {
 	private idList: string[] = [];
 	private output: string = '';
 	private canvasPos: { x: number; y: number } = { x: 0, y: 0 };
+	private canvasSize: { width: number; height: number } = { width: 0, height: 0 };
 	private listeners: Set<(event: BlockStoreEvent) => void> = new Set();
 
 	private constructor() {
@@ -177,6 +178,15 @@ class BlockStore {
 
 	public setCanvasPos(pos: { x: number; y: number }) {
 		this.canvasPos = pos;
+		this.notifyListeners({ type: 'canvas', id: '', block: undefined });
+	}
+
+	public getCanvasSize(): { width: number; height: number } {
+		return this.canvasSize;
+	}
+
+	public setCanvasSize(size: { width: number; height: number }) {
+		this.canvasSize = size;
 		this.notifyListeners({ type: 'canvas', id: '', block: undefined });
 	}
 }

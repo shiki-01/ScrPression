@@ -3,7 +3,7 @@ import { Icon } from '@iconify/react';
 import List from '$lib/components/List';
 import Block from '$lib/components/BaseBlock';
 import ContextMenu from '$lib/components/ContextMenu';
-import AddBlock from '$lib/dialog/BaseDialog';
+import AddBlock from '$lib/dialog/AddBlock';
 import { draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 import { ListStore } from '$lib/list/store';
@@ -264,38 +264,46 @@ const App: React.FC = () => {
 	const [idList, setIdList] = useState<string[]>([]);
 	const [output, setOutput] = useState('');
 
-	const [top, setTop] = useState(0);
-	const [bottom, setBottom] = useState(2000);
-	const [left, setLeft] = useState(0);
-	const [right, setRight] = useState(2000);
+	const [width, setWidth] = useState(0);
+	const [height, setHeight] = useState(0);
+	const [canvasPos, setCanvasPos] = useState({ x: 0, y: 0 });
 
 	const updateCanvasSize = () => {
 		const store = BlockStore.getInstance();
 		const blocks = store.getBlocks().blocks;
-		let top = 0;
-		let bottom = 0;
-		let left = 0;
-		let right = 0;
+		let minX = Infinity;
+		let minY = Infinity;
+		let maxX = 0;
+		let maxY = 0;
 
 		for (const block of Object.values(blocks)) {
-			if (block.position.y < top) {
-				top = block.position.y;
-			}
-			if (block.position.y + block.size.height > bottom) {
-				bottom = block.position.y + block.size.height;
-			}
-			if (block.position.x < left) {
-				left = block.position.x;
-			}
-			if (block.position.x + block.size.width > right) {
-				right = block.position.x + block.size.width;
-			}
+			const x = block.position.x;
+			const y = block.position.y;
+			const blockMaxX = x + block.size.width;
+			const blockMaxY = y + block.size.height;
+
+			if (x < minX) minX = x;
+			if (y < minY) minY = y;
+			if (blockMaxX > maxX) maxX = blockMaxX;
+			if (blockMaxY > maxY) maxY = blockMaxY;
 		}
 
-		setTop(top - 100);
-		setBottom(bottom + 100);
-		setLeft(left - 100);
-		setRight(right + 100);
+		const margin = 500;
+		const offsetX = minX < margin ? margin - minX : 0;
+		const offsetY = minY < margin ? margin - minY : 0;
+
+		if (offsetX > 0 || offsetY > 0) {
+			for (const block of Object.values(blocks)) {
+				block.position.x += offsetX;
+				block.position.y += offsetY;
+			}
+			const canvasPos = store.getCanvasPos();
+			store.setCanvasPos({ x: canvasPos.x - offsetX, y: canvasPos.y - offsetY });
+		}
+
+		setWidth(maxX + margin);
+		setHeight(maxY + margin);
+		store.setCanvasSize({ width: maxX + margin, height: maxY + margin });
 	};
 
 	useCanvas(canvas.current);
@@ -313,8 +321,12 @@ const App: React.FC = () => {
 					break;
 				case 'clear':
 				case 'update':
+					break;
 				case 'output':
 					setOutput(event.output || '');
+					break;
+				case 'canvas':
+					setCanvasPos(store.getCanvasPos());
 					break;
 			}
 		});
@@ -413,11 +425,11 @@ const App: React.FC = () => {
 							onContextMenu={openContextMenu}
 							className="canvas relative cursor-grab bg-slate-50 active:cursor-grabbing"
 							style={{
-								width: Math.max(left + right, 2000) + 'px',
-								height: Math.max(top + bottom, 2000) + 'px',
+								width: Math.max(width, 2000) + 'px',
+								height: Math.max(height, 2000) + 'px',
 								backgroundSize: '20px 20px',
 								backgroundImage: 'radial-gradient(#888 10%, transparent 10%)',
-								transform: `translate(0%, 0%)`,
+								transform: `translate(${canvasPos.x}px, ${canvasPos.y}px)`,
 								willChange: 'transform'
 							}}
 							onPointerDown={(event) => {
