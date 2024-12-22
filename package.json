@@ -1,7 +1,11 @@
 {
 	"name": "scrpression",
-	"version": "1.1.1-beta",
+	"version": "1.1.2-beta",
 	"type": "module",
+	"author": {
+		"email": "0110shiki@gmail.com",
+		"name": "shiki-01"
+	},
 	"main": "out/main/index.js",
 	"scripts": {
 		"devtool": "react-devtools",

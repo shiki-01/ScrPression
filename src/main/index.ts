@@ -1,10 +1,11 @@
 import * as path from 'path';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import isDev from 'electron-is-dev';
-import { autoUpdater } from 'electron-updater';
+import pkg from 'electron-updater';
 import electronLog from 'electron-log';
 import { fileURLToPath } from 'node:url';
 
+const { autoUpdater } = pkg;
 const log = electronLog.create({ logId: 'updater' });
 autoUpdater.logger = log;
 log.transports.file.level = 'info';
