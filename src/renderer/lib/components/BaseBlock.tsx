@@ -53,7 +53,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	}, [blockContent.id, size]);
 
 	const getPath = useCallback(() => {
-		return path(isFlag, size);
+		return path(blockContent.type, size);
 	}, [size.width, size.height, isFlag]);
 
 	const searchAllChildren = (id: string) => {

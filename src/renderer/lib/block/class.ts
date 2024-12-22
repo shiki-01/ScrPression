@@ -12,6 +12,7 @@ class Block {
 			position: { x: 0, y: 0 },
 			size: { width: 0, height: 0 },
 			childId: '',
+			children: [],
 			parentId: '',
 			depth: 0,
 			zIndex: 0

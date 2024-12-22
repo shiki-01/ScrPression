@@ -45,7 +45,7 @@ const List: React.FC<ListProps> = ({ id }) => {
 	}, [blockContent.id, size]);
 
 	const getPath = useCallback(() => {
-		return path(isFlag, size);
+		return path(blockContent.type, size);
 	}, [size.width, size.height, isFlag]);
 
 	useEffect(() => {

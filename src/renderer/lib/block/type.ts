@@ -48,6 +48,7 @@ interface BlockType extends ReadonlyBlockType {
 	position: Position;
 	size: { width: number; height: number };
 	childId: string;
+	children: BlockType[];
 	parentId: string;
 	depth: number;
 	zIndex: number;

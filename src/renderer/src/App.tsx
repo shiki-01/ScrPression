@@ -79,6 +79,7 @@ const App: React.FC = () => {
 			height: 58
 		},
 		childId: '',
+		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -137,6 +138,7 @@ const App: React.FC = () => {
 			y: 10
 		},
 		childId: '',
+		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -167,6 +169,7 @@ const App: React.FC = () => {
 			y: 10
 		},
 		childId: '',
+		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -174,17 +177,17 @@ const App: React.FC = () => {
 
 	const content4: BlockType = {
 		id: '',
-		title: 'change scene',
-		output: 'SceneManager.LoadScene(“${sceneName}“,LoadSceneMode.Single);',
-		type: 'composition',
+		title: 'for loop',
+		output: 'for (let i = 0; i < ${count}; i++) {\n\t${&&}\n}',
+		type: 'loop',
 		contents: [
 			{
-				id: 'sceneName',
+				id: 'count',
 				type: 'value',
 				content: {
-					title: 'Name',
-					value: '',
-					placeholder: 'Name'
+					title: 'Count',
+					value: '0',
+					placeholder: 'Count'
 				}
 			}
 		],
@@ -207,6 +210,7 @@ const App: React.FC = () => {
 			height: 58
 		},
 		childId: '',
+		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -237,12 +241,13 @@ const App: React.FC = () => {
 			height: 58
 		},
 		childId: '',
+		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
 	};
 
-	const listContents = useMemo(() => [content, content2, content3, content4, content5], []);
+	const listContents = useMemo(() => [content, content2, content3, content5], []);
 
 	const listStore = ListStore.getInstance();
 
