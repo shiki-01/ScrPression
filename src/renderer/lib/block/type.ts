@@ -60,7 +60,7 @@ type BlockStoreEvent = {
 	output?: string;
 };
 
-export {
+export type {
 	Position,
 	ValueContent,
 	SeparatorContent,

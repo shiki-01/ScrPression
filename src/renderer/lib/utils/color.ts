@@ -6,7 +6,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#5A8DEE',
 		border: '#3A6BC1',
-		shadow: '0 4px 6px rgba(90, 141, 238, 0.1)'
+		shadow: '0 4px 6px rgba(90, 141, 238, 0.5)'
 	},
 	red: {
 		title: 'Custom',
@@ -15,7 +15,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#EE5A77',
 		border: '#C13A55',
-		shadow: '0 4px 6px rgba(238, 90, 119, 0.1)'
+		shadow: '0 4px 6px rgba(238, 90, 119, 0.5)'
 	},
 	green: {
 		title: 'Operation',
@@ -24,7 +24,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#5AEE77',
 		border: '#3AC155',
-		shadow: '0 4px 6px rgba(90, 238, 119, 0.1)'
+		shadow: '0 4px 6px rgba(90, 238, 119, 0.5)'
 	},
 	yellow: {
 		title: 'Jump',
@@ -33,7 +33,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#EED55A',
 		border: '#C1A33A',
-		shadow: '0 4px 6px rgba(238, 213, 90, 0.1)'
+		shadow: '0 4px 6px rgba(238, 213, 90, 0.5)'
 	},
 	orange: {
 		title: 'Value',
@@ -42,7 +42,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#EE8A5A',
 		border: '#C16B3A',
-		shadow: '0 4px 6px rgba(238, 138, 90, 0.1)'
+		shadow: '0 4px 6px rgba(238, 138, 90, 0.5)'
 	},
 	cyan: {
 		title: 'Search',
@@ -51,7 +51,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#5AEEDE',
 		border: '#3AC1B1',
-		shadow: '0 4px 6px rgba(90, 238, 222, 0.1)'
+		shadow: '0 4px 6px rgba(90, 238, 222, 0.5)'
 	}
 };
 

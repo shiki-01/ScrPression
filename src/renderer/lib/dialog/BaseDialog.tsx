@@ -1,6 +1,4 @@
-import React, { useState } from 'react';
-import type { BlockType } from '$lib/block/type';
-import { ListStore } from '$lib/list/store';
+import React from 'react';
 
 interface BaseDialogProps {
 	onClose: () => void;
@@ -9,30 +7,6 @@ interface BaseDialogProps {
 }
 
 const baseDialog: React.FC<BaseDialogProps> = ({ onClose, size, children }) => {
-	const [value, setValue] = useState('');
-	const listStore = ListStore.getInstance();
-
-	const handleLinkClick = (event: React.MouseEvent<HTMLAnchorElement, MouseEvent>) => {
-		event.preventDefault();
-		const url = event.currentTarget.href;
-		window.electron.utils.openLink(url);
-	};
-
-	const isValidBlockType = (value: any): value is BlockType => {
-		try {
-			const parsedValue = JSON.parse(value);
-			return (
-				typeof parsedValue.id === 'string' &&
-				typeof parsedValue.size === 'object' &&
-				typeof parsedValue.size.width === 'number' &&
-				typeof parsedValue.size.height === 'number' &&
-				typeof parsedValue.zIndex === 'number'
-			);
-		} catch {
-			return false;
-		}
-	};
-
 	return (
 		<>
 			<div

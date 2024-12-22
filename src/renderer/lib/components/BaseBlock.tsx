@@ -326,7 +326,11 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				position: type === 'drag' ? 'fixed' : 'absolute',
 				zIndex: type === 'drag' ? 100 : blockContent.zIndex,
 				left: type === 'drag' ? position.x : blockContent.position.x,
-				top: type === 'drag' ? position.y : blockContent.position.y
+				top: type === 'drag' ? position.y : blockContent.position.y,
+				filter:
+					type === 'drag'
+						? `drop-shadow(${ColorPalette[getColor(blockContent.type)].shadow})`
+						: 'none'
 			}}
 		>
 			<div

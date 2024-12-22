@@ -4,6 +4,7 @@ import List from '$lib/components/List';
 import Block from '$lib/components/BaseBlock';
 import ContextMenu from '$lib/components/ContextMenu';
 import AddBlock from '$lib/dialog/AddBlock';
+import Pointer from '$lib/components/Pointer';
 import { draggingStore } from '$lib/store';
 import { BlockStore } from '$lib/block/store';
 import { ListStore } from '$lib/list/store';
@@ -14,6 +15,8 @@ const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
 	const [isContextMenuOpen, setIsContextMenuOpen] = useState(false);
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
+
+	const [pointerPosition, setPointerPosition] = useState({ x: 0, y: 0 });
 
 	const { draggingBlock } = draggingStore();
 
@@ -340,7 +343,12 @@ const App: React.FC = () => {
 		<main
 			ref={main}
 			className="relative grid h-[100svh] w-[100svw] touch-none select-none grid-rows-[50px_1fr] overflow-hidden"
+			onPointerMove={(event) => {
+				setPointerPosition({ x: event.clientX, y: event.clientY });
+			}}
 		>
+			<Pointer position={pointerPosition} />
+
 			{isContextMenuOpen && (
 				<ContextMenu position={contextMenuPosition} onClose={() => setIsContextMenuOpen(false)} />
 			)}

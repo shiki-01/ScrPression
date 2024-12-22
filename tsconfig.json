@@ -1,33 +1,11 @@
 {
-	"compilerOptions": {
-		"allowJs": true,
-		"checkJs": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
-		"sourceMap": true,
-		"strict": true,
-		"module": "esnext",
-		"jsx": "react",
-		"moduleResolution": "bundler",
-		"outDir": "build",
-		"baseUrl": ".",
-		"paths": {
-          "$lib": [
-            "./src/renderer/lib"
-          ],
-          "$lib/*": [
-            "./src/renderer/lib/*"
-          ]
-		}
-	},
-	"include": [
-		"./src/renderer/src/**/*.ts",
-		"./src/renderer/src/**/*.tsx",
-		"./src/renderer/lib/**/*.ts",
-		"./src/renderer/lib/**/*.tsx",
-		"./src/preload/**/*.ts",
-		"./src/types/*.d.ts"
-	]
+  "files": [],
+  "references": [
+    {
+      "path": "./tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    }
+  ]
 }
