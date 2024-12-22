@@ -1,11 +1,10 @@
-import path from 'path';
+import * as path from 'path';
 import { app, BrowserWindow, dialog, ipcMain, shell } from 'electron';
 import isDev from 'electron-is-dev';
-import pkg from 'electron-updater';
+import { autoUpdater } from 'electron-updater';
 import electronLog from 'electron-log';
 import { fileURLToPath } from 'node:url';
 
-const { autoUpdater } = pkg;
 const log = electronLog.create({ logId: 'updater' });
 autoUpdater.logger = log;
 log.transports.file.level = 'info';
@@ -15,6 +14,18 @@ const appUpdater = () => {
 		console.log('開発環境ではアップデートチェックをスキップします');
 		return;
 	}
+
+	autoUpdater.on('update-available', () => {
+		log.info('アップデートが利用可能です');
+	});
+
+	autoUpdater.on('update-not-available', () => {
+		log.info('アップデートはありません');
+	});
+
+	autoUpdater.on('error', (error) => {
+		log.error('アップデートエラー:', error);
+	});
 
 	autoUpdater.on('update-downloaded', () => {
 		dialog
@@ -70,7 +81,7 @@ app.on('window-all-closed', () => {
 	}
 });
 
-ipcMain.handle('open-link', async (event, url: string) => {
+ipcMain.handle('open-link', async (_event, url: string) => {
 	await dialog
 		.showMessageBox({
 			type: 'info',
