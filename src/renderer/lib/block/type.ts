@@ -48,10 +48,16 @@ interface BlockType extends ReadonlyBlockType {
 	position: Position;
 	size: { width: number; height: number };
 	childId: string;
-	children: BlockType[];
 	parentId: string;
 	depth: number;
 	zIndex: number;
+	enclose?: {
+		offset: Position;
+		connetions: {
+			output: Position;
+		}
+		contents: BlockType[];
+	}
 }
 
 type BlockStoreEvent = {

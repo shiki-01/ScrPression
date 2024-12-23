@@ -70,23 +70,51 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 
 	const formatOutput = (blocks: BlockType[]) => {
 		const outputText = blocks
-			.filter((block) => block.type !== 'flag')
 			.map((block) => {
 				let blockOutput = block.output;
-				block.contents.forEach((content) => {
-					if (content.type === 'separator') {
-						return;
-					} else if (content.type === 'value') {
-						const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
-						blockOutput = blockOutput.replace(regex, content.content.value);
-					}
-				});
+				console.log(block);
+				if (block.type === 'loop' && block.enclose) {
+					const encloseContents = block.enclose.contents
+						.map((contentBlock) => {
+							let contentOutput = contentBlock.output;
+							contentBlock.contents.forEach((content) => {
+								if (content.type === 'separator') {
+									return;
+								} else if (content.type === 'value') {
+									const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
+									contentOutput = contentOutput.replace(regex, content.content.value);
+								}
+							});
+							return contentOutput;
+						})
+						.join('\n');
+					blockOutput = blockOutput.replace('${&&}', '\n\t' + encloseContents + '\n');
+
+					block.contents.forEach((content) => {
+						if (content.type === 'separator') {
+							return;
+						} else if (content.type === 'value') {
+							const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
+							blockOutput = blockOutput.replace(regex, content.content.value);
+						}
+					});
+				} else {
+					block.contents.forEach((content) => {
+						if (content.type === 'separator') {
+							return;
+						} else if (content.type === 'value') {
+							const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
+							blockOutput = blockOutput.replace(regex, content.content.value);
+						}
+					});
+				}
 				return blockOutput;
 			})
 			.join('\n');
-
+	
 		store.clearOutput();
-		store.setOutput(outputText.trim());
+		console.log(outputText);
+		store.setOutput(outputText);
 	};
 
 	const overlap = (node: HTMLElement, target: HTMLElement) => {
@@ -163,25 +191,61 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				store.updateBlock(parentBlock.id, { childId: '' });
 			}
 
+			const updateChildPosition = (id: string, parentPosition: { x: number; y: number }, offset: number) => {
+				const childBlock = store.getBlock(id) as BlockType;
+				if (!childBlock) return;
+			
+				if (childBlock.type === 'loop' && childBlock.enclose) {
+					const encloseOffset = childBlock.enclose.offset;
+					store.updateBlock(childBlock.id, {
+						position: {
+							x: parentPosition.x - 250,
+							y: parentPosition.y + offset - 50
+						}
+					});
+
+					let innerOffset = 0;
+					childBlock.enclose.contents.forEach((innerBlock) => {
+						innerOffset += 42;
+						updateChildPosition(innerBlock.id, {
+							x: parentPosition.x + encloseOffset.x,
+							y: parentPosition.y + offset + encloseOffset.y
+						}, innerOffset);
+					});
+				} else {
+					store.updateBlock(childBlock.id, {
+						position: {
+							x: parentPosition.x - 250 - store.getCanvasPos().x,
+							y: parentPosition.y + offset - 50 - store.getCanvasPos().y
+						}
+					});
+				}
+			};
+			
 			if (store.getBlock(blockContent.id)?.childId) {
 				let childId = store.getBlock(blockContent.id)!.childId;
 				let offset = 42;
-
-				const updateChildPosition = (id: string) => {
-					const childBlock = store.getBlock(id) as BlockType;
-					if (!childBlock) return;
-					store.updateBlock(childBlock.id, {
-						position: {
-							x: newPosition.x - 250 - store.getCanvasPos().x,
-							y: newPosition.y + offset - 50 - store.getCanvasPos().y
-						}
-					});
-				};
-
+			
 				while (childId) {
-					updateChildPosition(childId);
+					updateChildPosition(childId, newPosition, offset);
 					childId = store.getBlock(childId)!.childId;
 					offset += 42;
+				}
+			}
+			
+			if (store.getBlock(blockContent.id)?.type === 'loop') {
+				const blocks = store.getBlock(blockContent.id)!.enclose!.contents;
+				if (blocks.length > 0) {
+					const parentPosition = {
+						x: newPosition.x,
+						y: newPosition.y
+					};
+					let offset = 0;
+					blocks.forEach((block) => {
+						offset += 42;
+						console.log(store.getBlock(blockContent.id));
+						updateChildPosition(block.id, parentPosition, offset);
+					});
 				}
 			}
 
@@ -215,8 +279,23 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 							return;
 
 						if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
-							store.updateBlock(blockContent.id, { parentId: targetID });
-							store.updateBlock(targetID, { childId: blockContent.id });
+							const targetBlock = store.getBlock(targetID) as BlockType;
+							if (targetBlock.type === 'loop') {
+								store.updateBlock(targetID,
+									{
+										enclose: {
+											offset: targetBlock.enclose!.offset,
+											connetions: {
+												output: targetBlock.enclose!.connetions.output
+											},
+											contents: [...(targetBlock.enclose?.contents || []), blockContent]
+										}
+									});
+								console.log("enclose",store.getBlock(targetID));
+							} else {
+								store.updateBlock(blockContent.id, { parentId: targetID });
+								store.updateBlock(targetID, { childId: blockContent.id });
+							}
 						}
 					});
 				});
@@ -224,13 +303,23 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					const parentBlock = store.getBlock(
 						store.getBlock(blockContent.id)!.parentId
 					) as BlockType;
-					const parentPosition = {
-						x: parentBlock.position.x,
-						y: parentBlock.position.y
-					};
-					store.updateBlock(blockContent.id, {
-						position: { x: parentPosition.x, y: parentPosition.y + 42 }
-					});
+					if (parentBlock.type === 'loop') {
+						const parentPosition = {
+							x: parentBlock.position.x,
+							y: parentBlock.position.y
+						};
+						store.updateBlock(blockContent.id, {
+							position: { x: parentPosition.x + parentBlock.enclose!.offset.x, y: parentPosition.y + 42 }
+						});
+					} else {
+						const parentPosition = {
+							x: parentBlock.position.x,
+							y: parentBlock.position.y
+						};
+						store.updateBlock(blockContent.id, {
+							position: { x: parentPosition.x, y: parentPosition.y + 42 }
+						});
+					}
 				} else {
 					store.updateBlock(blockContent.id, { position: finalPosition });
 				}
@@ -299,7 +388,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			bounds: 'parent',
 			position: { x: blockContent.position.x, y: blockContent.position.y },
 			content: blockContent,
-			onDrag: () => {},
+			onDrag: () => { },
 			onStart: (event) => {
 				const offset = blockRef.current!.getBoundingClientRect();
 				setDraggingBlock(blockContent.id, {
@@ -360,7 +449,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
 					<svg
 						className=""
-						height={size.height}
+						height={size.height + 55}
 						width={size.width + 2}
 						role="none"
 						xmlns="http://www.w3.org/2000/svg"

@@ -12,11 +12,18 @@ class Block {
 			position: { x: 0, y: 0 },
 			size: { width: 0, height: 0 },
 			childId: '',
-			children: [],
 			parentId: '',
 			depth: 0,
-			zIndex: 0
+			zIndex: 0,
+			enclose: {
+				offset: { x: 8, y: 0 },
+				connetions: {
+					output: { x: 0, y: 0 }
+				},
+				contents: []
+			}
 		};
+		console.log(this._block);
 	}
 
 	public get get(): Readonly<BlockType> {

@@ -135,7 +135,7 @@ const List: React.FC<ListProps> = ({ id }) => {
 				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
 					<svg
 						className=""
-						height={size.height}
+						height={size.height + 100}
 						width={size.width + 2}
 						role="none"
 						xmlns="http://www.w3.org/2000/svg"

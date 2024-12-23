@@ -10,6 +10,7 @@ import { BlockStore } from '$lib/block/store';
 import { ListStore } from '$lib/list/store';
 import type { BlockType } from '$lib/block/type';
 import { useCanvas } from '$lib/hooks/useCanvas';
+import Markdown from 'react-markdown'
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
@@ -17,7 +18,8 @@ const App: React.FC = () => {
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
 	const [pointerPosition, setPointerPosition] = useState({ x: 0, y: 0 });
-
+	const [pointerLeave, setPointerLeave] = useState(false);
+	
 	const { draggingBlock } = draggingStore();
 
 	const toggleAdd = () => {
@@ -79,7 +81,6 @@ const App: React.FC = () => {
 			height: 58
 		},
 		childId: '',
-		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -138,7 +139,6 @@ const App: React.FC = () => {
 			y: 10
 		},
 		childId: '',
-		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -169,7 +169,6 @@ const App: React.FC = () => {
 			y: 10
 		},
 		childId: '',
-		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
@@ -178,7 +177,7 @@ const App: React.FC = () => {
 	const content4: BlockType = {
 		id: '',
 		title: 'for loop',
-		output: 'for (let i = 0; i < ${count}; i++) {\n\t${&&}\n}',
+		output: 'for (let i = 0; i < ${count}; i++) {${&&}}',
 		type: 'loop',
 		contents: [
 			{
@@ -210,10 +209,63 @@ const App: React.FC = () => {
 			height: 58
 		},
 		childId: '',
-		children: [],
 		parentId: '',
 		depth: 0,
-		zIndex: 0
+		zIndex: 0,
+		enclose: {
+			offset: { x: 16, y: 58 },
+			connetions: {
+				output: { x: 16, y: 0 }
+			},
+			contents: []
+		}
+	};
+
+	const content6: BlockType = {
+		id: '',
+		title: 'if',
+		output: 'if (${condition}) {${&&}}',
+		type: 'loop',
+		contents: [
+			{
+				id: 'condition',
+				type: 'value',
+				content: {
+					title: 'Condition',
+					value: '',
+					placeholder: 'Condition'
+				}
+			}
+		],
+		connections: {
+			input: {
+				x: 16,
+				y: 0
+			},
+			output: {
+				x: 16,
+				y: 0
+			}
+		},
+		position: {
+			x: 10,
+			y: 10
+		},
+		size: {
+			width: 200,
+			height: 58
+		},
+		childId: '',
+		parentId: '',
+		depth: 0,
+		zIndex: 0,
+		enclose: {
+			offset: { x: 16, y: 58 },
+			connetions: {
+				output: { x: 16, y: 0 }
+			},
+			contents: []
+		}
 	};
 
 	const content5: BlockType = {
@@ -241,13 +293,12 @@ const App: React.FC = () => {
 			height: 58
 		},
 		childId: '',
-		children: [],
 		parentId: '',
 		depth: 0,
 		zIndex: 0
 	};
 
-	const listContents = useMemo(() => [content, content2, content3, content5], []);
+	const listContents = useMemo(() => [content, content2, content3, content5, content4, content6], []);
 
 	const listStore = ListStore.getInstance();
 
@@ -349,10 +400,16 @@ const App: React.FC = () => {
 			ref={main}
 			className="relative grid h-[100svh] w-[100svw] touch-none select-none grid-rows-[50px_1fr] overflow-hidden"
 			onPointerMove={(event) => {
+				if (pointerLeave) {
+					setPointerLeave(false);
+				}
 				setPointerPosition({ x: event.clientX, y: event.clientY });
 			}}
+			onPointerLeave={() => {
+				setPointerLeave(true);
+			}}
 		>
-			<Pointer position={pointerPosition} />
+			<Pointer position={pointerPosition} isLeave={pointerLeave} />
 
 			{isContextMenuOpen && (
 				<ContextMenu position={contextMenuPosition} onClose={() => setIsContextMenuOpen(false)} />
@@ -475,7 +532,12 @@ const App: React.FC = () => {
 					</div>
 					<div className="h-full w-full overflow-auto bg-slate-800 p-5 text-slate-50">
 						{output.split('\n').map((line, i) => (
-							<p key={i}>{line}</p>
+							<p
+								style={{
+									marginLeft: line.startsWith('\t') ? '1rem' : '0'
+								}}
+								key={i}
+							>{line}</p>
 						))}
 					</div>
 				</div>

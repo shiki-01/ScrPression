@@ -3,9 +3,10 @@ import pointer from '$lib/img/pointer.svg';
 
 interface PointerProps {
 	position: { x: number; y: number };
+	isLeave: boolean;
 }
 
-const Pointer: React.FC<PointerProps> = ({ position }) => {
+const Pointer: React.FC<PointerProps> = ({ position, isLeave }) => {
 	const pointerRef = useRef<HTMLDivElement>(null);
 
 	return (
@@ -13,6 +14,7 @@ const Pointer: React.FC<PointerProps> = ({ position }) => {
 			ref={pointerRef}
 			className="pointer-events-none fixed"
 			style={{
+				visibility: isLeave ? 'hidden' : 'visible',
 				top: position.y,
 				left: position.x,
 				zIndex: 9999
