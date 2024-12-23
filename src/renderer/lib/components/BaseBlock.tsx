@@ -111,7 +111,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				return blockOutput;
 			})
 			.join('\n');
-	
+
 		store.clearOutput();
 		console.log(outputText);
 		store.setOutput(outputText);
@@ -191,10 +191,14 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				store.updateBlock(parentBlock.id, { childId: '' });
 			}
 
-			const updateChildPosition = (id: string, parentPosition: { x: number; y: number }, offset: number) => {
+			const updateChildPosition = (
+				id: string,
+				parentPosition: { x: number; y: number },
+				offset: number
+			) => {
 				const childBlock = store.getBlock(id) as BlockType;
 				if (!childBlock) return;
-			
+
 				if (childBlock.type === 'loop' && childBlock.enclose) {
 					const encloseOffset = childBlock.enclose.offset;
 					store.updateBlock(childBlock.id, {
@@ -207,10 +211,14 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					let innerOffset = 0;
 					childBlock.enclose.contents.forEach((innerBlock) => {
 						innerOffset += 42;
-						updateChildPosition(innerBlock.id, {
-							x: parentPosition.x + encloseOffset.x,
-							y: parentPosition.y + offset + encloseOffset.y
-						}, innerOffset);
+						updateChildPosition(
+							innerBlock.id,
+							{
+								x: parentPosition.x + encloseOffset.x,
+								y: parentPosition.y + offset + encloseOffset.y
+							},
+							innerOffset
+						);
 					});
 				} else {
 					store.updateBlock(childBlock.id, {
@@ -221,18 +229,18 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					});
 				}
 			};
-			
+
 			if (store.getBlock(blockContent.id)?.childId) {
 				let childId = store.getBlock(blockContent.id)!.childId;
 				let offset = 42;
-			
+
 				while (childId) {
 					updateChildPosition(childId, newPosition, offset);
 					childId = store.getBlock(childId)!.childId;
 					offset += 42;
 				}
 			}
-			
+
 			if (store.getBlock(blockContent.id)?.type === 'loop') {
 				const blocks = store.getBlock(blockContent.id)!.enclose!.contents;
 				if (blocks.length > 0) {
@@ -281,17 +289,16 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 						if (overlap(outputElement as HTMLElement, inputElement as HTMLElement)) {
 							const targetBlock = store.getBlock(targetID) as BlockType;
 							if (targetBlock.type === 'loop') {
-								store.updateBlock(targetID,
-									{
-										enclose: {
-											offset: targetBlock.enclose!.offset,
-											connetions: {
-												output: targetBlock.enclose!.connetions.output
-											},
-											contents: [...(targetBlock.enclose?.contents || []), blockContent]
-										}
-									});
-								console.log("enclose",store.getBlock(targetID));
+								store.updateBlock(targetID, {
+									enclose: {
+										offset: targetBlock.enclose!.offset,
+										connetions: {
+											output: targetBlock.enclose!.connetions.output
+										},
+										contents: [...(targetBlock.enclose?.contents || []), blockContent]
+									}
+								});
+								console.log('enclose', store.getBlock(targetID));
 							} else {
 								store.updateBlock(blockContent.id, { parentId: targetID });
 								store.updateBlock(targetID, { childId: blockContent.id });
@@ -309,7 +316,10 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 							y: parentBlock.position.y
 						};
 						store.updateBlock(blockContent.id, {
-							position: { x: parentPosition.x + parentBlock.enclose!.offset.x, y: parentPosition.y + 42 }
+							position: {
+								x: parentPosition.x + parentBlock.enclose!.offset.x,
+								y: parentPosition.y + 42
+							}
 						});
 					} else {
 						const parentPosition = {
@@ -388,7 +398,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			bounds: 'parent',
 			position: { x: blockContent.position.x, y: blockContent.position.y },
 			content: blockContent,
-			onDrag: () => { },
+			onDrag: () => {},
 			onStart: (event) => {
 				const offset = blockRef.current!.getBoundingClientRect();
 				setDraggingBlock(blockContent.id, {
@@ -448,7 +458,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				)}
 				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
 					<svg
-						className=""
+						className="pointer-events-none"
 						height={size.height + 55}
 						width={size.width + 2}
 						role="none"

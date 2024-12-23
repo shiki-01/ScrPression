@@ -17,7 +17,7 @@ class Block {
 			zIndex: 0,
 			enclose: {
 				offset: { x: 8, y: 0 },
-				connetions: {
+				connections: {
 					output: { x: 0, y: 0 }
 				},
 				contents: []

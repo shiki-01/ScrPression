@@ -10,7 +10,6 @@ import { BlockStore } from '$lib/block/store';
 import { ListStore } from '$lib/list/store';
 import type { BlockType } from '$lib/block/type';
 import { useCanvas } from '$lib/hooks/useCanvas';
-import Markdown from 'react-markdown'
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
@@ -18,8 +17,8 @@ const App: React.FC = () => {
 	const [contextMenuPosition, setContextMenuPosition] = useState({ x: 0, y: 0 });
 
 	const [pointerPosition, setPointerPosition] = useState({ x: 0, y: 0 });
-	const [pointerLeave, setPointerLeave] = useState(false);
-	
+	const [pointerLeave, setPointerLeave] = useState(true);
+
 	const { draggingBlock } = draggingStore();
 
 	const toggleAdd = () => {
@@ -298,7 +297,10 @@ const App: React.FC = () => {
 		zIndex: 0
 	};
 
-	const listContents = useMemo(() => [content, content2, content3, content5, content4, content6], []);
+	const listContents = useMemo(
+		() => [content, content2, content3, content5, content4, content6],
+		[]
+	);
 
 	const listStore = ListStore.getInstance();
 
@@ -537,7 +539,9 @@ const App: React.FC = () => {
 									marginLeft: line.startsWith('\t') ? '1rem' : '0'
 								}}
 								key={i}
-							>{line}</p>
+							>
+								{line}
+							</p>
 						))}
 					</div>
 				</div>

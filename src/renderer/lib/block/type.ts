@@ -53,11 +53,11 @@ interface BlockType extends ReadonlyBlockType {
 	zIndex: number;
 	enclose?: {
 		offset: Position;
-		connetions: {
+		connections: {
 			output: Position;
-		}
+		};
 		contents: BlockType[];
-	}
+	};
 }
 
 type BlockStoreEvent = {
