@@ -213,7 +213,7 @@ const App: React.FC = () => {
 		zIndex: 0,
 		enclose: {
 			offset: { x: 16, y: 58 },
-			connetions: {
+			connections: {
 				output: { x: 16, y: 0 }
 			},
 			contents: []
@@ -260,7 +260,7 @@ const App: React.FC = () => {
 		zIndex: 0,
 		enclose: {
 			offset: { x: 16, y: 58 },
-			connetions: {
+			connections: {
 				output: { x: 16, y: 0 }
 			},
 			contents: []
