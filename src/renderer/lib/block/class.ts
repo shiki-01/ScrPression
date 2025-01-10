@@ -1,10 +1,10 @@
-import type { BlockType, ReadonlyBlockType } from '$lib/block/type';
+import type { BlockType, ConstructorBlockType } from '$lib/block/type';
 import { v4 as uuid } from 'uuid';
 
 class Block {
 	private readonly _block: BlockType;
 
-	constructor(readonlyBlock: ReadonlyBlockType) {
+	constructor(readonlyBlock: ConstructorBlockType) {
 		const id = uuid();
 		this._block = {
 			...readonlyBlock,
@@ -23,7 +23,6 @@ class Block {
 				contents: []
 			}
 		};
-		console.log(this._block);
 	}
 
 	public get get(): Readonly<BlockType> {
