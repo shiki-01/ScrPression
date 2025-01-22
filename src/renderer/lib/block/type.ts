@@ -61,11 +61,16 @@ interface BlockType extends ReadonlyBlockType {
 }
 
 type BlockStoreEvent = {
-	type: 'add' | 'remove' | 'update' | 'clear' | 'output' | 'canvas';
+	type: 'add' | 'remove' | 'update' | 'clear' | 'output';
 	id?: string;
 	block?: BlockType | undefined;
 	output?: string;
 };
+
+type CanvasStoreEvent = {
+	type: 'canvas';
+	id: string;
+}
 
 export type {
 	Position,
@@ -79,5 +84,6 @@ export type {
 	BlockContent,
 	ReadonlyBlockType,
 	BlockType,
-	BlockStoreEvent
+	BlockStoreEvent,
+	CanvasStoreEvent,
 };

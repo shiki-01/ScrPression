@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import { draggingStore } from '$lib/store';
-import { BlockStore } from '$lib/block/store';
+import { CanvasStore } from '$lib/canvas/store.ts';
 
 const useCanvas = (node: HTMLDivElement | null) => {
 	const [isDragging, setIsDragging] = useState(false);
 	const [startPos, setStartPos] = useState({ x: 0, y: 0 });
 	const [translate, setTranslate] = useState({ x: 0, y: 0 });
 	const { getDraggingBlock } = draggingStore();
-	const store = BlockStore.getInstance();
+	const canvasStore = CanvasStore.getInstance();
 	const [scale, setScale] = useState(1);
 
 	useEffect(() => {
@@ -32,7 +32,7 @@ const useCanvas = (node: HTMLDivElement | null) => {
 			const boundedY = Math.max(-maxY, Math.min(newY, 0));
 
 			setTranslate({ x: boundedX, y: boundedY });
-			store.setCanvasPos({ x: boundedX, y: boundedY });
+			canvasStore.setCanvasPos({ x: boundedX, y: boundedY });
 		};
 
 		const onMouseUp = () => {

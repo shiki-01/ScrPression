@@ -1,3 +1,4 @@
+import { ListenerManager } from '$lib/utils/ListenerManager';
 import { BlockStoreEvent, BlockType } from './type';
 import { Block } from '$lib/block/class';
 
@@ -6,9 +7,7 @@ class BlockStore {
 	private blocks: Map<string, BlockType> = new Map();
 	private idList: string[] = [];
 	private output: string = '';
-	private canvasPos: { x: number; y: number } = { x: 0, y: 0 };
-	private canvasSize: { width: number; height: number } = { width: 0, height: 0 };
-	private listeners: Set<(event: BlockStoreEvent) => void> = new Set();
+	private listenerManager: ListenerManager<BlockStoreEvent> = new ListenerManager();
 
 	private constructor() {
 		this.clearBlocks();
@@ -33,7 +32,7 @@ class BlockStore {
 		this.blocks = newBlocks;
 		this.idList = newIdList;
 
-		this.notifyListeners({ type: 'add', id: newBlock.get.id, block: newBlock.get });
+		this.listenerManager.notifyListeners({ type: 'add', id: newBlock.get.id, block: newBlock.get });
 		return newBlock.get.id;
 	}
 
@@ -46,7 +45,7 @@ class BlockStore {
 		this.blocks = new Map<string, BlockType>(newBlocks);
 		this.idList = [...newIdList];
 
-		this.notifyListeners({ type: 'remove', id });
+		this.listenerManager.notifyListeners({ type: 'remove', id });
 	}
 
 	public updateBlock(id: string, partialBlock: Partial<BlockType>) {
@@ -58,7 +57,7 @@ class BlockStore {
 
 			this.blocks = newBlocks;
 
-			this.notifyListeners({ type: 'update', id, block: updatedBlock });
+			this.listenerManager.notifyListeners({ type: 'update', id, block: updatedBlock });
 		}
 	}
 
@@ -85,7 +84,7 @@ class BlockStore {
 
 			this.blocks = newBlocks;
 
-			this.notifyListeners({ type: 'update', id, block: updatedBlock });
+			this.listenerManager.notifyListeners({ type: 'update', id, block: updatedBlock });
 		}
 	}
 
@@ -127,7 +126,7 @@ class BlockStore {
 		}
 
 		this.blocks = newBlocks;
-		this.notifyListeners({ type: 'update', id, block: block });
+		this.listenerManager.notifyListeners({ type: 'update', id, block: block });
 	}
 
 	public getBlock(id: string): BlockType | undefined {
@@ -146,16 +145,11 @@ class BlockStore {
 		this.blocks = new Map();
 		this.idList = [];
 
-		this.notifyListeners({ type: 'clear', id: '' });
+		this.listenerManager.notifyListeners({ type: 'clear', id: '' });
 	}
 
 	public subscribe(listener: (event: BlockStoreEvent) => void) {
-		this.listeners.add(listener);
-		return () => this.listeners.delete(listener);
-	}
-
-	private notifyListeners(event: BlockStoreEvent) {
-		this.listeners.forEach((listener) => listener(event));
+		return this.listenerManager.subscribe(listener);
 	}
 
 	public getOutput(): string {
@@ -164,30 +158,12 @@ class BlockStore {
 
 	public setOutput(output: string) {
 		this.output = output;
-		this.notifyListeners({ type: 'output', id: '', output });
+		this.listenerManager.notifyListeners({ type: 'output', id: '', output });
 	}
 
 	public clearOutput() {
 		this.output = '';
-		this.notifyListeners({ type: 'output', id: '', output: '' });
-	}
-
-	public getCanvasPos(): { x: number; y: number } {
-		return this.canvasPos;
-	}
-
-	public setCanvasPos(pos: { x: number; y: number }) {
-		this.canvasPos = pos;
-		this.notifyListeners({ type: 'canvas', id: '', block: undefined });
-	}
-
-	public getCanvasSize(): { width: number; height: number } {
-		return this.canvasSize;
-	}
-
-	public setCanvasSize(size: { width: number; height: number }) {
-		this.canvasSize = size;
-		this.notifyListeners({ type: 'canvas', id: '', block: undefined });
+		this.listenerManager.notifyListeners({ type: 'output', id: '', output: '' });
 	}
 }
 

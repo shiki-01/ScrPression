@@ -10,6 +10,7 @@ import { BlockStore } from '$lib/block/store';
 import { ListStore } from '$lib/list/store';
 import type { BlockType } from '$lib/block/type';
 import { useCanvas } from '$lib/hooks/useCanvas';
+import { CanvasStore } from '$lib/canvas/store.ts';
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
@@ -330,8 +331,9 @@ const App: React.FC = () => {
 	const [canvasPos, setCanvasPos] = useState({ x: 0, y: 0 });
 
 	const updateCanvasSize = () => {
-		const store = BlockStore.getInstance();
-		const blocks = store.getBlocks().blocks;
+		const blockStore = BlockStore.getInstance();
+		const canvasStore = CanvasStore.getInstance();
+		const blocks = blockStore.getBlocks().blocks;
 		let minX = Infinity;
 		let minY = Infinity;
 		let maxX = 0;
@@ -358,27 +360,27 @@ const App: React.FC = () => {
 				block.position.x += offsetX;
 				block.position.y += offsetY;
 			}
-			const canvasPos = store.getCanvasPos();
-			store.setCanvasPos({ x: canvasPos.x - offsetX, y: canvasPos.y - offsetY });
+			const canvasPos = canvasStore.getCanvasPos();
+			canvasStore.setCanvasPos({ x: canvasPos.x - offsetX, y: canvasPos.y - offsetY });
 		}
 
 		setWidth(maxX + margin);
 		setHeight(maxY + margin);
-		store.setCanvasSize({ width: maxX + margin, height: maxY + margin });
+		canvasStore.setCanvasSize({ width: maxX + margin, height: maxY + margin });
 	};
 
 	useCanvas(canvas.current);
 
 	useEffect(() => {
-		const store = BlockStore.getInstance();
+		const blockStore = BlockStore.getInstance();
 
-		setIdList(store.getBlocks().idList);
+		setIdList(blockStore.getBlocks().idList);
 
-		const unsubscribe = store.subscribe((event) => {
+		const blockUnsubscribe = blockStore.subscribe((event) => {
 			switch (event.type) {
 				case 'add':
 				case 'remove':
-					setIdList(store.getBlocks().idList);
+					setIdList(blockStore.getBlocks().idList);
 					break;
 				case 'clear':
 				case 'update':
@@ -386,14 +388,23 @@ const App: React.FC = () => {
 				case 'output':
 					setOutput(event.output || '');
 					break;
+			}
+		});
+
+		const canvasStore = CanvasStore.getInstance();
+
+		const canvasUnsubscribe = canvasStore.subscribe((event) => {
+			switch (event.type) {
 				case 'canvas':
-					setCanvasPos(store.getCanvasPos());
-					break;
+					{ const canvasPos = canvasStore.getCanvasPos();
+					setCanvasPos(canvasPos);
+					break; }
 			}
 		});
 
 		return () => {
-			unsubscribe();
+			blockUnsubscribe();
+			canvasUnsubscribe();
 		};
 	}, []);
 
