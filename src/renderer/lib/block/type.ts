@@ -36,28 +36,31 @@ interface ReadonlyBlockType {
 	readonly id: string;
 	readonly type: 'flag' | ('move' | 'composition' | 'works') | 'loop' | 'value';
 	readonly title: string;
-	contents: BlockContent[];
 	readonly output: string;
 	readonly connections: {
-		input: Position | null;
-		output: Position | null;
+		readonly input: Position | null;
+		readonly output: Position | null;
 	};
 }
 
-interface BlockType extends ReadonlyBlockType {
-	position: Position;
-	size: { width: number; height: number };
-	childId: string;
-	parentId: string;
-	depth: number;
-	zIndex: number;
+type ConstructorBlockType = ReadonlyBlockType & {
+	contents: BlockContent[];
+}
+
+type BlockType = ConstructorBlockType & {
+	position: Position,
+	size: { width: number; height: number },
+	childId: string,
+	parentId: string,
+	depth: number,
+	zIndex: number,
 	enclose?: {
-		offset: Position;
+		offset: Position,
 		connections: {
-			output: Position;
+			output: Position,
 		};
-		contents: BlockType[];
-	};
+		contents: BlockType[],
+	},
 }
 
 type BlockStoreEvent = {
@@ -83,6 +86,7 @@ export type {
 	SelectBlockContent,
 	BlockContent,
 	ReadonlyBlockType,
+	ConstructorBlockType,
 	BlockType,
 	BlockStoreEvent,
 	CanvasStoreEvent,
