@@ -1,5 +1,5 @@
 import { ListenerManager } from '$lib/utils/ListenerManager.ts';
-import { CanvasStoreEvent } from '$lib/block/type.ts';
+import { CanvasStoreEvent } from '$lib/canvas/type.ts';
 
 class CanvasStore {
 	private static instance: CanvasStore;

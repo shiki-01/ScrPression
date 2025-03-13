@@ -6,6 +6,12 @@ interface ContextMenuProps {
 	onClose: () => void;
 }
 
+/**
+ * ContextMenu
+ * @param position コンテキストメニューの表示位置
+ * @param onClose コンテキストメニューを閉じる関数
+ * @constructor
+ */
 const ContextMenu: React.FC<ContextMenuProps> = ({ position, onClose }) => {
 	return (
 		<div className="fixed inset-0 left-0 top-0 z-[998] h-full w-full">

@@ -6,6 +6,12 @@ interface PointerProps {
 	isLeave: boolean;
 }
 
+/**
+ * Pointer
+ * @param position ポインターの位置
+ * @param isLeave ポインターが離れたかどうか
+ * @constructor
+ */
 const Pointer: React.FC<PointerProps> = ({ position, isLeave }) => {
 	const pointerRef = useRef<HTMLDivElement>(null);
 

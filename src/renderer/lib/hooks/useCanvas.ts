@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 import { draggingStore } from '$lib/store';
 import { CanvasStore } from '$lib/canvas/store.ts';
 
+/**
+ * useCanvas
+ * @param node キャンバスノード
+ */
 const useCanvas = (node: HTMLDivElement | null) => {
 	const [isDragging, setIsDragging] = useState(false);
 	const [startPos, setStartPos] = useState({ x: 0, y: 0 });

@@ -12,6 +12,11 @@ interface ListProps {
 	id: string;
 }
 
+/**
+ * List
+ * @param id ID
+ * @constructor List
+ */
 const List: React.FC<ListProps> = ({ id }) => {
 	const listStore = ListStore.getInstance();
 

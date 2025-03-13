@@ -6,6 +6,13 @@ interface AutoResizeInputProps {
 	[key: string]: any;
 }
 
+/**
+ * AutoResizeInput
+ * @param initialValue 初期値
+ * @param style スタイル
+ * @param props その他のプロパティ
+ * @constructor AutoResizeInput
+ */
 const AutoResizeInput: React.FC<AutoResizeInputProps> = ({
 	initialValue = '',
 	style = {},

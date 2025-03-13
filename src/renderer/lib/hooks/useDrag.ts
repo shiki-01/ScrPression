@@ -2,6 +2,11 @@ import React, { useEffect, useRef, useState } from 'react';
 import { BlockStore } from '$lib/block/store';
 import { BlockType } from '$lib/block/type';
 
+/**
+ * ドラッグフック
+ * @param ref ドラッグ対象の参照
+ * @param params ドラッグパラメータ
+ */
 const useDrag = (
 	ref: React.RefObject<HTMLDivElement | null>,
 	params: {

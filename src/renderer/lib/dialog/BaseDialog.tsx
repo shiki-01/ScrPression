@@ -6,6 +6,13 @@ interface BaseDialogProps {
 	children?: React.ReactNode;
 }
 
+/**
+ * BaseDialog
+ * @param onClose ダイアログを閉じる関数
+ * @param size サイズ
+ * @param children 子要素
+ * @constructor BaseDialog
+ */
 const baseDialog: React.FC<BaseDialogProps> = ({ onClose, size, children }) => {
 	return (
 		<>

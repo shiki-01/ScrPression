@@ -19,6 +19,11 @@ type AddBlockContent = BlockContent & {
 	selectId: string;
 };
 
+/**
+ * AddBlock
+ * @param onClose 閉じるハンドラ
+ * @constructor AddBlock
+ */
 const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 	const [name, setName] = useState('');
 	const [type, setType] = useState<'flag' | 'move' | 'composition' | 'works' | 'loop' | 'value'>(
@@ -117,10 +122,20 @@ const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 		onClose();
 	};
 
+	/**
+	 * handleDelete
+	 * @param deleteId 削除するID
+	 */
 	const handleDelete = (deleteId: string) => {
 		setContents((currentContents) => currentContents.filter((content) => content.id !== deleteId));
 	};
 
+	/**
+	 * isBlockWithTitle
+	 * @param content ブロックコンテンツ
+	 * @returns ブロックコンテンツがタイトルを持つかどうか
+	 * @constructor isBlockWithTitle
+	 **/
 	const isBlockWithTitle = (
 		content: BlockContent
 	): content is ValueBlockContent | SelectBlockContent => {
@@ -133,6 +148,13 @@ const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 		);
 	};
 
+	/**
+	 * handleChange
+	 * @param index インデックス
+	 * @param value 値
+	 * @param property プロパティ
+	 * @constructor handleChange
+	 */
 	const handleChange = (
 		index: number,
 		value: string,
