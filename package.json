@@ -28,7 +28,7 @@
 		"@types/uuid": "^10.0.0",
 		"autoprefixer": "^10.4.20",
 		"clsx": "^2.1.1",
-		"electron": "^33.3.2",
+		"electron": "^33.4.0",
 		"electron-builder": "^25.1.8",
 		"eslint": "^9.17.0",
 		"eslint-config-prettier": "^9.1.0",
@@ -40,7 +40,7 @@
 		"tailwindcss": "^3.4.17",
 		"typescript": "^5.7.2",
 		"typescript-eslint": "^8.18.1",
-		"vite": "^5.4.14"
+		"vite": "^6.3.2"
 	},
 	"dependencies": {
 		"@eslint/js": "^9.17.0",
@@ -58,7 +58,7 @@
 		"electron-is-dev": "^3.0.1",
 		"electron-log": "^5.2.4",
 		"electron-updater": "^6.3.9",
-		"electron-vite": "^2.3.0",
+		"electron-vite": "^3.1.0",
 		"nanostores": "^0.11.3",
 		"pako": "^2.1.0",
 		"react": "^19.0.0",
