@@ -30,7 +30,7 @@ const AutoResizeInput: React.FC<AutoResizeInputProps> = ({
 	}, [value]);
 
 	return (
-		<div className="field h-full" style={{ display: 'inline-block', position: 'relative' }}>
+		<div className="field h:full" style={{ display: 'inline-block', position: 'relative' }}>
 			<span
 				ref={spanRef}
 				className="field"
@@ -46,7 +46,7 @@ const AutoResizeInput: React.FC<AutoResizeInputProps> = ({
 			<input
 				{...props}
 				value={value}
-				className={'field h-full text-center ' + props.className}
+				className={'field h:full text-align:center ' + props.className}
 				style={{
 					...style,
 					width

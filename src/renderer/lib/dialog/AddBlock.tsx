@@ -218,27 +218,27 @@ const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 
 	return (
 		<BaseDialog onClose={onClose} size={{ width: 600, height: 500 }}>
-			<div className="flex h-full w-full flex-col">
-				<div className="flex items-center justify-end">
+			<div className="flex h:full w:full flex:col">
+				<div className="flex align-items:center justify-content:end">
 					<button
 						onClick={onClose}
-						className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-50"
+						className="flex h:40px w:40px align-items:center justify-content:center rounded bg:#f8fafc"
 					>
-						<Icon icon="ic:round-close" className="h-5 w-5" />
+						<Icon icon="ic:round-close" className="h:20px w:20px" />
 					</button>
 				</div>
-				<div className="flex h-full w-full flex-col gap-2">
-					<div className="flex h-full w-full flex-col gap-2 px-4 pb-2">
-						<div className="flex w-full flex-row items-center justify-between">
-							<p className="text-nowrap">Block Name</p>
+				<div className="flex h:full w:full flex:col  gap:8px">
+					<div className="flex h:full w:full flex:col  gap:8px px:16px pb:2">
+						<div className="flex w:full flex:row align-items:center justify-content:space-between">
+							<p className="">Block Name</p>
 							<input
 								onInput={(e) => setName(e.currentTarget.value)}
 								type="text"
-								className="w-[400px] border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+								className="w:160px bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 							/>
 						</div>
-						<div className="flex w-full flex-row items-center justify-between">
-							<p className="text-nowrap">Block Type</p>
+						<div className="flex w:full flex:row align-items:center justify-content:space-between">
+							<p className="">Block Type</p>
 							<select
 								value={type}
 								onChange={(e) =>
@@ -252,7 +252,7 @@ const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 											| 'value'
 									)
 								}
-								className="w-[400px] border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+								className="w:160px bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 							>
 								<option value="move">Move</option>
 								<option value="works">Works</option>
@@ -260,61 +260,61 @@ const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 								<option value="flag">Flag</option>
 							</select>
 						</div>
-						<div className="flex w-full flex-row items-center justify-between">
-							<p className="text-nowrap">Output</p>
+						<div className="flex w:full flex:row align-items:center justify-content:space-between">
+							<p className="">Output</p>
 							<input
 								onInput={(e) => setOutput(e.currentTarget.value)}
 								type="text"
-								className="w-[400px] border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+								className="w:160px bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 							/>
 						</div>
-						<div className="flex h-full w-full flex-col gap-1">
-							<p className="text-nowrap">Contents</p>
-							<div className="flex h-full max-h-[200px] w-full flex-col gap-2 overflow-y-auto rounded-lg border border-slate-800 p-2">
-								<div className="flex flex-col gap-2 p-2">
+						<div className="flex h:full w:full flex:col  gap:4px">
+							<p className="">Contents</p>
+							<div className="flex h:full max-h:200px w:full flex:col gap:8px overflow:y-auto r:8px bb:1px|solid|#1e293b p:8px">
+								<div className="flex flex:col  gap:8px p:8px">
 									{contents.map((content, index) => (
 										<div
 											key={content.selectId}
-											className="w-fullitems-center flex flex-row justify-between gap-2"
+											className="w:full align-items:center flex flex:row justify-content:space-between gap:8px"
 										>
 											<button
 												onClick={() => {
 													handleDelete(content.selectId);
 												}}
-												className="rounded-full text-slate-800"
+												className="rounded f:#1e293b"
 											>
-												<Icon icon="ic:round-close" className="h-4 w-4" />
+												<Icon icon="ic:round-close" className="h:64px w:16px" />
 											</button>
 											<select
 												value={contents[index].selectType}
 												onChange={(e) => handleChange(index, e.currentTarget.value, 'selectType')}
-												className="border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+												className="bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 											>
 												<option value="value">Value</option>
 												<option value="select">Select</option>
 												<option value="separator">Separator</option>
 											</select>
-											<div className="grid grid-cols-4 gap-2">
+											<div className="grid grid-cols:4  gap:8px">
 												<input
 													disabled={contents[index].selectType === 'separator'}
 													placeholder="ID"
 													onChange={(e) => handleChange(index, e.currentTarget.value, 'id')}
 													type="id"
-													className="border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+													className="bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 												/>
 												<input
 													disabled={contents[index].selectType === 'separator'}
 													placeholder="Title"
 													onChange={(e) => handleChange(index, e.currentTarget.value, 'title')}
 													type="text"
-													className="border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+													className="bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 												/>
 												<input
 													disabled={contents[index].selectType === 'separator'}
 													placeholder="Value"
 													onChange={(e) => handleChange(index, e.currentTarget.value, 'value')}
 													type="text"
-													className="border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+													className="bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 												/>
 												<input
 													disabled={contents[index].selectType === 'separator'}
@@ -323,24 +323,24 @@ const AddBlock: React.FC<AddBlockProps> = ({ onClose }) => {
 														handleChange(index, e.currentTarget.value, 'placeholder')
 													}
 													type="text"
-													className="border-b border-slate-800 bg-transparent p-1 focus:outline-none"
+													className="bb:1px|solid|#1e293b bg:transparent p:4px focus:outline-none"
 												/>
 											</div>
 										</div>
 									))}
 								</div>
-								<div className="flex w-full items-center justify-center">
-									<button onClick={addContent} className="rounded-full bg-slate-400 p-2 text-white">
-										<Icon icon="ic:round-add" className="h-5 w-5" />
+								<div className="flex w:full align-items:center justify-content:center">
+									<button onClick={addContent} className="rounded bg:#94a3b8 p:8px f:white">
+										<Icon icon="ic:round-add" className="h:20px w:20px" />
 									</button>
 								</div>
 							</div>
 						</div>
 					</div>
-					<div className="flex w-full justify-end">
+					<div className="flex w:full justify-content:end">
 						<button
 							onClick={handleSubmit}
-							className="flex h-10 w-40 items-center justify-center rounded-lg bg-slate-800 text-white"
+							className="flex h:40px w:160px align-items:center justify-content:center r:8px bg:#1e293b f:white"
 						>
 							Add Block
 						</button>

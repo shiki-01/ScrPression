@@ -11,6 +11,8 @@ import { ListStore } from '$lib/list/store';
 import type { BlockType } from '$lib/block/type';
 import { useCanvas } from '$lib/hooks/useCanvas';
 import { CanvasStore } from '$lib/canvas/store.ts';
+import '@master/css';
+import '@master/normal.css';
 
 const App: React.FC = () => {
 	const [isAdd, setIsAdd] = useState(false);
@@ -411,7 +413,7 @@ const App: React.FC = () => {
 	return (
 		<main
 			ref={main}
-			className="relative grid h-[100svh] w-[100svw] touch-none select-none grid-rows-[50px_1fr] overflow-hidden"
+			className="rel grid h:100svh w:100svw touch-action:none user-select:none grid-template-rows:50px|1fr overflow:hidden"
 			onPointerMove={(event) => {
 				if (pointerLeave) {
 					setPointerLeave(false);
@@ -429,51 +431,51 @@ const App: React.FC = () => {
 			)}
 
 			<div
-				className={`fixed left-0 top-0 z-50 transition-opacity ${isAdd ? 'opacity-100' : 'opacity-0'}`}
+				className={`fixed left:0 top:0 z:50 transition:opacity ${isAdd ? 'opacity:100' : 'opacity:0'}`}
 			>
 				{isAdd && <AddBlock onClose={toggleAdd} />}
 			</div>
 
-			<div className="flex h-full w-full flex-row justify-between bg-slate-500 px-5">
-				<div className="flex flex-row gap-4">
-					<div className="h-full w-[100px]">
+			<div className="flex h:full w:full flex:row justify-content:space-between bg:#575f75 px:20px">
+				<div className="flex flex:row gap:16px">
+					<div className="h:full w:160px">
 						<img
 							src="https://placehold.jp/200x200"
 							alt="logo"
-							className="h-full w-full object-cover"
+							className="h:full w:full obj:cover"
 						/>
 					</div>
-					<div className="flex flex-row gap-2 py-2">
+					<div className="flex flex:row gap:8px py:8px">
 						<div>
-							<input type="text" className="h-full w-[200px] px-2" placeholder="" />
+							<input type="text" className="h:full w:200px px:8px" placeholder="" />
 						</div>
-						<div className="flex h-full flex-row items-center justify-center gap-2 text-slate-50">
+						<div className="flex h:full flex:row align-items:center justify-content:center gap:8px f:#f8fafc">
 							<button>
-								<Icon icon="ic:round-chevron-left" className="h-6 w-6" />
+								<Icon icon="ic:round-chevron-left" className="h:24px w:24px" />
 							</button>
 							<button>
-								<Icon icon="ic:round-chevron-right" className="h-6 w-6" />
+								<Icon icon="ic:round-chevron-right" className="h:24px w:24px" />
 							</button>
 							<button>
-								<Icon icon="ic:round-save" className="h-6 w-6" />
+								<Icon icon="ic:round-save" className="h:24px w:24px" />
 							</button>
 						</div>
 					</div>
 				</div>
-				<div className="flex h-full touch-auto flex-row items-center justify-center gap-4 text-slate-50">
+				<div className="flex h:full touch:auto flex:row align-items:center justify-content:center gap:16px f:#f8fafc">
 					<button
 						onClick={() => {
 							toggleAdd();
 						}}
-						className="flex h-full w-full items-center justify-center"
+						className="flex h:full w:full align-items:center justify-content:center"
 					>
-						<Icon icon="ic:round-add-box" className="h-6 w-6" />
+						<Icon icon="ic:round-add-box" className="h:24px w:24px" />
 					</button>
-					<button className="flex h-full w-full items-center justify-center">
-						<Icon icon="ic:round-share" className="h-6 w-6" />
+					<button className="flex h:full w:full align-items:center justify-content:center">
+						<Icon icon="ic:round-share" className="h:24px w:24px" />
 					</button>
-					<button className="flex h-full w-full items-center justify-center">
-						<Icon icon="ic:round-settings" className="h-6 w-6" />
+					<button className="flex h:full w:full align-items:center justify-content:center">
+						<Icon icon="ic:round-settings" className="h:24px w:24px" />
 					</button>
 				</div>
 			</div>
@@ -481,15 +483,15 @@ const App: React.FC = () => {
 				onPointerDown={() => {
 					setIsContextMenuOpen(false);
 				}}
-				className="grid grid-cols-[250px_1fr] grid-rows-1 overflow-hidden"
+				className="grid grid-template-columns:250|1fr grid-rows:1 overflow:hidden"
 			>
-				<div className="block-list relative flex h-full w-full select-none flex-col items-start gap-5 overflow-hidden bg-slate-200 p-5">
+				<div className="block-list rel flex h:full w:full user-select:none flex:col align-items:start gap:20px overflow:hidden bg:#e2e8f0 p:20px">
 					{lists.map((list, i) => (
 						<List key={i} id={list} />
 					))}
 				</div>
-				<div className="grid grid-rows-[1fr_250px]">
-					<div className="relative h-full w-full overflow-hidden">
+				<div className="grid grid-template-rows:1fr|250px">
+					<div className="rel h:full w:full overflow:hidden">
 						{dragging !== '' && BlockStore.getInstance().getBlock(dragging)?.id && (
 							<Block
 								type="drag"
@@ -506,7 +508,7 @@ const App: React.FC = () => {
 								}
 							}}
 							onContextMenu={openContextMenu}
-							className="canvas relative cursor-grab bg-slate-50 active:cursor-grabbing"
+							className="canvas rel cursor:grab bg:#f8fafc cursor:grabbing:active"
 							style={{
 								width: Math.max(width, 2000) + 'px',
 								height: Math.max(height, 2000) + 'px',
@@ -525,25 +527,25 @@ const App: React.FC = () => {
 								return dragging !== id && <Block key={id} type="block" id={id} />;
 							})}
 						</div>
-						<div className="trash absolute bottom-2 right-2 text-slate-400 transition-colors duration-300 hover:text-slate-500">
-							<Icon className="h-10 w-10" icon="ic:round-delete" />
+						<div className="trash abs bottom:2 right:2 f:#94a3b8 transition:colors|300 f:#64748b:hover">
+							<Icon className="h:40px w:40px" icon="ic:round-delete" />
 						</div>
-						<div className="absolute bottom-0 left-0 h-3 w-full pb-2 pl-2 pr-4">
-							<div ref={scrollX} className="h-full w-full rounded-full bg-slate-400"></div>
+						<div className="abs bottom:0 left:0 h:3 w:full pb:2 pl:2 pr:4">
+							<div ref={scrollX} className="h:full w:full rounded bg:#94a3b8"></div>
 						</div>
-						<div className="absolute right-0 top-0 h-full w-3 pb-4 pr-2 pt-2">
-							<div ref={scrollY} className="h-full w-full rounded-full bg-slate-400"></div>
+						<div className="abs right:0 top:0 h:full w:12px pb:4 pr:2 pt2">
+							<div ref={scrollY} className="h:full w:full rounded bg:#94a3b8"></div>
 						</div>
-						<div className="absolute right-6 top-6 flex flex-col gap-2">
-							<button className="flex items-center justify-center rounded-full border-2 border-slate-400 bg-slate-50 text-slate-400">
-								<Icon icon="ic:round-plus" className="h-6 w-6" />
+						<div className="abs right:6 top:6 flex flex:col gap:2">
+							<button className="flex align-items:center justify-content:center rounded b:2px border-slate-400 bg:#f8fafc f:#94a3b8">
+								<Icon icon="ic:round-plus" className="h:24px w:24px" />
 							</button>
-							<button className="flex items-center justify-center rounded-full border-2 border-slate-400 bg-slate-50 text-slate-400">
-								<Icon icon="ic:round-minus" className="h-6 w-6" />
+							<button className="flex align-items:center justify-content:center rounded b:2px border-slate-400 bg:#f8fafc f:#94a3b8">
+								<Icon icon="ic:round-minus" className="h:24px w:24px" />
 							</button>
 						</div>
 					</div>
-					<div className="h-full w-full overflow-auto bg-slate-800 p-5 text-slate-50">
+					<div className="h:full w:full overflow:auto bg:#1e293b p:20px f:#f8fafc">
 						{output.split('\n').map((line, i) => (
 							<p
 								style={{

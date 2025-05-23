@@ -134,10 +134,10 @@ const List: React.FC<ListProps> = ({ id }) => {
 			tabIndex={0}
 		>
 			<div
-				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
+				className="rel flex h:48px w:fit cursor:pointer align-items:center justify-content:center r:6px px:10px pb:4px vertical:middle"
 				data-id={content.id}
 			>
-				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
+				<div className="abs left:0 top:0 z:-10 h:0 w:full">
 					<svg
 						className=""
 						height={size.height + 100}
@@ -157,20 +157,20 @@ const List: React.FC<ListProps> = ({ id }) => {
 					</svg>
 				</div>
 				<div
-					className="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
+					className="flex h:full w:full flex:row align-items:center justify-content:center  gap:16px vertical:middle"
 					style={{ color: ColorPalette[getColor(content.type)].text }}
 				>
 					<div className="whitespace-nowrap font-bold">{content.title}</div>
-					<div className="flex flex-row gap-2 align-middle">
+					<div className="flex flex:row  gap:8px vertical:middle">
 						{content.contents.map((item, index) => (
-							<div key={index} className="flex flex-row items-center justify-center gap-1">
+							<div key={index} className="flex flex:row align-items:center justify-content:center  gap:4px">
 								{item.type === 'separator' ? (
-									<div className="h-5 w-[1px] bg-blue-950"></div>
+									<div className="h:20px w:1px bg:#172554"></div>
 								) : (
 									<>
 										<div>{item.content.title}</div>
 										<div
-											className="flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
+											className="flex align-items:center justify-content:center rounded b:2px px:8px outline:none:focus"
 											style={{
 												backgroundColor: ColorPalette[getColor(content.type)].text,
 												borderColor: ColorPalette[getColor(content.type)].border
@@ -179,7 +179,7 @@ const List: React.FC<ListProps> = ({ id }) => {
 											<AutoResizeInput
 												initialValue={item.content.value}
 												type="text"
-												className="bg-transparent text-slate-900 focus:outline-none"
+												className="bg:transparent fg:#0f172a outline:none:focus"
 											/>
 										</div>
 									</>
@@ -189,13 +189,13 @@ const List: React.FC<ListProps> = ({ id }) => {
 					</div>
 					{isFlag && (
 						<button
-							className="flex items-center justify-center rounded-full border-2 p-1"
+							className="flex align-items:center justify-content:center rounded b:2px p:4px"
 							style={{
 								backgroundColor: ColorPalette[getColor(content.type)].text,
 								borderColor: ColorPalette[getColor(content.type)].border
 							}}
 						>
-							<Icon icon="ic:round-flag" className="h-5 w-5 text-green-400" />
+							<Icon icon="ic:round-flag" className="h:20px w:20px f:#4ade80" />
 						</button>
 					)}
 				</div>

@@ -535,14 +535,14 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			}}
 		>
 			<div
-				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
+				className="rel flex h:48px w:fit  align-items:center justify-content:center r:6px px:10px pb:4px vertical:middle"
 				data-id={blockContent.id}
 			>
 				{/* 入力コネクタ */}
 				{blockContent.connections.input && (
 					<span
 						data-id={blockContent.id}
-						className="input absolute h-2 w-6"
+						className="input abs h:8px w:24px"
 						style={{
 							left: blockContent.connections.input.x,
 							top: blockContent.connections.input.y
@@ -554,7 +554,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				{blockContent.connections.output && (
 					<span
 						data-id={blockContent.id}
-						className="output absolute h-2 w-6"
+						className="output abs h:8px w:24px"
 						style={{
 							bottom: blockContent.connections.output.y,
 							left: blockContent.connections.output.x
@@ -563,9 +563,9 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				)}
 
 				{/* ブロック背景 */}
-				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
+				<div className="abs left:0 top:0 z:-10 h:0 w:full">
 					<svg
-						className="pointer-events-none"
+						className="pointer-events:none"
 						height={size.height + 55}
 						width={size.width + 2}
 						role="none"
@@ -585,24 +585,24 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 
 				{/* ブロックコンテンツ */}
 				<div
-					className="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
+					className="flex h:full w:full flex:row align-items:center justify-content:center  gap:16px vertical:middle"
 					style={{
 						color: ColorPalette[getColor(blockContent.type)].text
 					}}
 				>
-					<div className="whitespace-nowrap font-bold">{blockContent.title}</div>
+					<div className="white-space:nowrap font:bold">{blockContent.title}</div>
 
 					{/* フィールド */}
-					<div className="flex flex-row gap-2 align-middle">
+					<div className="flex flex:row  gap:8px vertical:middle">
 						{blockContent.contents.map((item, index) => (
 							<React.Fragment key={index}>
 								{item.type === 'separator' ? (
-									<div className="h-5 w-[1px] bg-blue-950"></div>
+									<div className="h:20px w:1px bg:#172554"></div>
 								) : (
-									<div className="flex flex-row items-center justify-center gap-1.5">
-										<div className="whitespace-nowrap">{item.content.title}</div>
+									<div className="flex flex:row align-items:center justify-content:center gap:6px">
+										<div className="white-space:nowrap">{item.content.title}</div>
 										<div
-											className="field flex h-full items-center justify-center rounded-full border-2 px-2"
+											className="field flex h:full align-items:center justify-content:center rounded b:2px px:8px"
 											style={{
 												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 												borderColor: ColorPalette[getColor(blockContent.type)].border
@@ -611,7 +611,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 											<AutoResizeInput
 												initialValue={item.content.value}
 												type="text"
-												className="bg-transparent text-slate-900 focus:outline-none"
+												className="bg:transparent f:#0f172a outline:none:focus"
 												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 													blockStore.updateValue(blockContent.id, item.id, e.currentTarget.value);
 												}}
@@ -626,7 +626,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					{/* フラグアイコン */}
 					{isFlag && (
 						<button
-							className="field flex items-center justify-center rounded-full border-2 p-1"
+							className="field flex align-items:center justify-content:center rounded b:2px p:4px"
 							style={{
 								backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 								borderColor: ColorPalette[getColor(blockContent.type)].border
@@ -637,7 +637,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 								navigator.clipboard.writeText(output).then((r) => r);
 							}}
 						>
-							<Icon icon="ic:round-flag" className="field h-5 w-5 text-green-400" />
+							<Icon icon="ic:round-flag" className="field h:20px w:20px f:#4ade80" />
 						</button>
 					)}
 				</div>
