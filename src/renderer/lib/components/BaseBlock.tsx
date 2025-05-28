@@ -10,61 +10,14 @@ import { CanvasStore } from '$lib/canvas/store.ts';
 import { defaultBlock } from '$lib/block';
 
 /**
- * ブロックの接続を管理するカスタムフック
- * @param blockContent ブロックの内容
- * @param onConnect 接続時のコールバック
- * @returns 接続処理のハンドラ
- */
-const useBlockConnections = (blockContent: BlockType, onConnect: (targetID: string) => void) => {
-	// 要素の重なりを検出する関数
-	const detectOverlap = useCallback((node: Element, target: Element) => {
-		const nodeRect = node.getBoundingClientRect();
-		const targetRect = target.getBoundingClientRect();
-		return !(
-			nodeRect.right < targetRect.left ||
-			nodeRect.left > targetRect.right ||
-			nodeRect.bottom < targetRect.top ||
-			nodeRect.top > targetRect.bottom
-		);
-	}, []);
-
-	// ドロップ時の接続処理
-	const handleConnect = useCallback(
-		() => {
-			const inputs = document.querySelectorAll('.input');
-			const outputs = document.querySelectorAll('.output');
-			let connected = false;
-
-			inputs.forEach((inputElement) => {
-				outputs.forEach((outputElement) => {
-					const targetID = (outputElement as HTMLElement).dataset.id;
-					if (!targetID || targetID === blockContent.id) return;
-
-					if (detectOverlap(outputElement, inputElement)) {
-						onConnect(targetID);
-						connected = true;
-					}
-				});
-			});
-
-			return connected;
-		},
-		[blockContent.id, detectOverlap, onConnect]
-	);
-
-	return { handleConnect };
-};
-
-/**
  * ブロックのドラッグ処理を管理するカスタムフック
- * @param blockRef ブロックの参照
- * @param blockContent ブロックの内容
- * @param onDragStart ドラッグ開始時のコールバック
- * @param onDragEnd ドラッグ終了時のコールバック
  */
 const useBlockDrag = (
 	blockRef: React.RefObject<HTMLElement | null>,
 	blockContent: BlockType,
+	type: 'block' | 'drag',
+	position: Position,
+	setPosition: (pos: Position) => void,
 	onDragStart: (event: PointerEvent, offset: Position) => void,
 	onDragEnd: (event: PointerEvent, position: Position) => void,
 ) => {
@@ -73,11 +26,11 @@ const useBlockDrag = (
 	const [isDragging, setIsDragging] = useState(false);
 	const startPos = useRef({ x: 0, y: 0 });
 	const dragOffset = useRef({ x: 0, y: 0 });
+	console.log('useBlockDrag');
 
-	// ポインターキャプチャを使用して、より安定したドラッグを実現
 	const handlePointerDown = useCallback(
 		(e: PointerEvent) => {
-			if (e.button !== 0 || !blockRef.current) return; // 左クリックのみ処理
+			if (e.button !== 0 || !blockRef.current) return;
 
 			const rect = blockRef.current.getBoundingClientRect();
 			dragOffset.current = {
@@ -86,11 +39,10 @@ const useBlockDrag = (
 			};
 
 			startPos.current = {
-				x: blockContent.position.x,
-				y: blockContent.position.y
+				x: type === 'drag' ? position.x : blockContent.position.x,
+				y: type === 'drag' ? position.y : blockContent.position.y
 			};
 
-			// ポインターキャプチャを設定（これにより他の要素にマウスが移動しても追跡可能）
 			blockRef.current.setPointerCapture(e.pointerId);
 			setIsDragging(true);
 
@@ -101,34 +53,36 @@ const useBlockDrag = (
 			e.stopPropagation();
 			e.preventDefault();
 		},
-		[blockContent.position.x, blockContent.position.y, onDragStart]
+		[blockContent.position, type, position, onDragStart]
 	);
 
 	const handlePointerMove = useCallback(
 		(e: PointerEvent) => {
+			console.log('handlePointerMove');
 			if (!isDragging) return;
+			console.log('isDragging', isDragging);
 
-			const canvasPos = canvasStore.getCanvasPos();
-			const newPosition = {
-				x: e.clientX - dragOffset.current.x - canvasPos.x,
-				y: e.clientY - dragOffset.current.y - canvasPos.y
-			};
-
-			// 位置の更新（実際のDOM更新はStateを通じて行う）
-			blockStore.updateBlock(blockContent.id, {
-				position: newPosition
-			});
-
-			// 子ブロックの位置も更新
-			updateChildrenPositions(blockContent.id, {
-				x: e.clientX - dragOffset.current.x,
-				y: e.clientY - dragOffset.current.y
-			});
-
-			e.stopPropagation();
-			e.preventDefault();
+			if (type === 'drag') {
+				// ドラッグタイプは直接position stateを更新
+				setPosition({
+					x: e.clientX - dragOffset.current.x,
+					y: e.clientY - dragOffset.current.y
+				});
+			} else {
+				// 通常ブロックはstoreを通じて更新
+				const canvasPos = canvasStore.getCanvasPos();
+				const newPosition = {
+					x: e.clientX - dragOffset.current.x - canvasPos.x,
+					y: e.clientY - dragOffset.current.y - canvasPos.y
+				};
+				blockStore.updateBlock(blockContent.id, { position: newPosition });
+				updateChildrenPositions(blockContent.id, {
+					x: e.clientX - dragOffset.current.x,
+					y: e.clientY - dragOffset.current.y
+				});
+			}
 		},
-		[isDragging, blockContent.id, canvasStore]
+		[isDragging, type, setPosition, blockContent.id, canvasStore, blockStore]
 	);
 
 	const handlePointerUp = useCallback(
@@ -157,7 +111,6 @@ const useBlockDrag = (
 			const block = blockStore.getBlock(parentId);
 			if (!block) return;
 
-			// 子ブロックの位置を更新
 			if (block.childId) {
 				let childId = block.childId;
 				let offset = 42;
@@ -178,7 +131,6 @@ const useBlockDrag = (
 				}
 			}
 
-			// Loop型の場合は内部ブロックも更新
 			if (block.type === 'loop' && block.enclose) {
 				const encloseOffset = block.enclose.offset;
 				let offset = 0;
@@ -202,9 +154,11 @@ const useBlockDrag = (
 		const element = blockRef.current;
 		if (!element) return;
 
-		element.addEventListener('pointerdown', handlePointerDown);
-		element.addEventListener('pointermove', handlePointerMove);
-		element.addEventListener('pointerup', handlePointerUp);
+		console.log('addEventListener');
+
+		element.addEventListener('pointerdown', handlePointerDown, { passive: false });
+		element.addEventListener('pointermove', handlePointerMove, { passive: false });
+		element.addEventListener('pointerup', handlePointerUp, { passive: false });
 
 		return () => {
 			element.removeEventListener('pointerdown', handlePointerDown);
@@ -218,8 +172,6 @@ const useBlockDrag = (
 
 /**
  * ブロックのリサイズを監視するカスタムフック
- * @param blockRef ブロックの参照
- * @param onResize リサイズ時のコールバック
  */
 const useBlockResize = (blockRef: React.RefObject<HTMLDivElement | null>, onResize: (size: Size) => void) => {
 	useEffect(() => {
@@ -244,7 +196,7 @@ const useBlockResize = (blockRef: React.RefObject<HTMLDivElement | null>, onResi
 		return () => {
 			resizeObserver.disconnect();
 		};
-	}, [blockRef, onResize]);
+	}, [onResize]);
 };
 
 interface BlockProps {
@@ -256,26 +208,22 @@ interface BlockProps {
 
 /**
  * ブロックコンポーネント
- * @param id ブロックのID
- * @param type ブロックの種類
- * @param initialPosition ドラッグ開始時の初期位置
- * @param onEnd ドラッグ終了時のコールバック
  */
 const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	const { setDraggingBlock, clearDraggingBlock } = draggingStore();
 	const blockStore = BlockStore.getInstance();
 	const canvasStore = CanvasStore.getInstance();
-	const blockRef = useRef(null);
+	const blockRef = useRef<HTMLDivElement>(null);
 
 	// ブロックの状態
 	const [blockContent, setBlockContent] = useState(blockStore.getBlock(id) || defaultBlock);
 	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(blockContent.type === 'flag');
 
-	// ドラッグ用の初期位置（ドラッグプレビュー用）
+	// ドラッグ用の位置状態
 	const [position, setPosition] = useState({
-		x: type === 'drag' && initialPosition ? initialPosition.x : 0,
-		y: type === 'drag' && initialPosition ? initialPosition.y : 0
+		x: type === 'drag' && initialPosition ? initialPosition.x : blockContent.position.x,
+		y: type === 'drag' && initialPosition ? initialPosition.y : blockContent.position.y
 	});
 
 	// ブロックとブロックの接続を処理
@@ -293,7 +241,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				const rect1 = output.getBoundingClientRect();
 				const rect2 = input.getBoundingClientRect();
 
-				// 重なりの検出に余裕を持たせる（px単位）
 				const tolerance = 20;
 				const isOverlapping = !(
 					rect1.right < rect2.left - tolerance ||
@@ -306,7 +253,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					const targetBlock = blockStore.getBlock(targetID);
 
 					if (targetBlock && targetBlock.type === 'loop') {
-						// ループブロックの内部に配置
 						if (targetBlock.enclose) {
 							blockStore.updateBlock(targetBlock.id, {
 								enclose: {
@@ -326,12 +272,10 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 							});
 						}
 					} else {
-						// 通常の親子関係を設定
 						blockStore.updateBlock(blockContent.id, { parentId: targetID });
 						blockStore.updateBlock(targetID, { childId: blockContent.id });
 					}
 
-					// 接続後の位置調整
 					updateConnectedPosition(targetID);
 					connected = true;
 				}
@@ -341,12 +285,10 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		return connected;
 	}, [blockContent, blockStore]);
 
-	// ブロックのドラッグ開始時のハンドラ
 	const handleDragStart = useCallback(
 		(_e: PointerEvent, offset: Position) => {
 			setDraggingBlock(blockContent.id, offset);
 
-			// 親子関係をリセット
 			if (blockContent.parentId) {
 				const parentBlock = blockStore.getBlock(blockContent.parentId);
 				if (parentBlock) {
@@ -358,10 +300,8 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		[blockContent.id, blockContent.parentId, blockStore, setDraggingBlock]
 	);
 
-	// ブロックのドラッグ終了時のハンドラ
 	const handleDragEnd = useCallback(
 		(e: PointerEvent, finalPosition: Position) => {
-			// ゴミ箱や他のエリアにドロップされたかチェック
 			const elements = document.elementsFromPoint(e.clientX, e.clientY);
 			const shouldRemove = elements.some(
 				(element) => element.classList.contains('trash') || element.classList.contains('block-list')
@@ -373,10 +313,8 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				return;
 			}
 
-			// 接続の試行
 			const connected = handleConnect();
 
-			// 接続されなかった場合は位置を更新
 			if (!connected) {
 				const canvasPos = canvasStore.getCanvasPos();
 				blockStore.updateBlock(blockContent.id, {
@@ -397,7 +335,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		[blockContent.id, blockStore, canvasStore, clearDraggingBlock, handleConnect, onEnd]
 	);
 
-	// 接続後の位置を調整
 	const updateConnectedPosition = useCallback(
 		(parentId: string) => {
 			const parentBlock = blockStore.getBlock(parentId);
@@ -422,7 +359,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		[blockContent.id, blockStore]
 	);
 
-	// ブロックのサイズが変更されたときの処理
 	const handleResize = useCallback(
 		(newSize: Size) => {
 			if (newSize.width !== size.width || newSize.height !== size.height) {
@@ -434,27 +370,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		},
 		[blockContent.id, blockStore, size.height, size.width]
 	);
-
-	// サイズ変更の監視を設定
-	useBlockResize(blockRef, handleResize);
-
-	// ブロックの更新を監視
-	useEffect(() => {
-		return blockStore.subscribe((event) => {
-			if (event.id === id && event.type === 'update' && event.block) {
-				setBlockContent(event.block);
-				if (event.block.size) {
-					setSize(event.block.size);
-				}
-				setIsFlag(event.block.type === 'flag');
-			}
-		});
-	}, [blockStore, id]);
-
-	// ブロックのパスを取得
-	const getBlockPath = useCallback(() => {
-		return path(blockContent.type, size);
-	}, [blockContent.type, size]);
 
 	// フラグブロックの出力フォーマット処理
 	const formatOutput = useCallback(() => {
@@ -475,7 +390,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			.map((block) => {
 				let output = block.output;
 
-				// ループブロックの特殊処理
 				if (block.type === 'loop' && block.enclose) {
 					const encloseOutput = block.enclose.contents
 						.map((contentBlock) => {
@@ -493,7 +407,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					output = output.replace('${&&}', '\n\t' + encloseOutput + '\n');
 				}
 
-				// 変数置換
 				block.contents.forEach((content) => {
 					if (content.type === 'value') {
 						const regex = new RegExp(`\\$\\{${content.id}\\}`, 'g');
@@ -511,11 +424,45 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		return outputText;
 	}, [blockContent, blockStore]);
 
-	// ドラッグタイプのブロックはドラッグ処理を追加
-	if (type === 'drag') {
-		// ドラッグハンドラを設定
-		useBlockDrag(blockRef, blockContent, handleDragStart, handleDragEnd);
-	}
+	// サイズ変更の監視を設定
+	useBlockResize(blockRef, handleResize);
+
+	// ドラッグ処理を設定（type関係なく常に設定）
+	console.log('useBlockDrag');
+	useBlockDrag(
+		blockRef,
+		blockContent,
+		type,
+		position,
+		setPosition,
+		handleDragStart,
+		handleDragEnd
+	);
+
+	// ブロックの更新を監視
+	useEffect(() => {
+		return blockStore.subscribe((event) => {
+			if (event.id === id && event.type === 'update' && event.block) {
+				setBlockContent(event.block);
+				if (event.block.size) {
+					setSize(event.block.size);
+				}
+				setIsFlag(event.block.type === 'flag');
+			}
+		});
+	}, [blockStore, id]);
+
+	// ブロックのパスを取得
+	const getBlockPath = useCallback(() => {
+		return path(blockContent.type, size);
+	}, [blockContent.type, size]);
+
+	// 現在の位置を取得（typeに応じて切り替え）
+	const getCurrentPosition = () => {
+		return type === 'drag' ? position : blockContent.position;
+	};
+
+	const currentPosition = getCurrentPosition();
 
 	// ブロックのレンダリング
 	return (
@@ -525,24 +472,24 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			style={{
 				position: type === 'drag' ? 'fixed' : 'absolute',
 				zIndex: type === 'drag' ? 100 : blockContent.zIndex,
-				left: type === 'drag' ? position.x : blockContent.position.x,
-				top: type === 'drag' ? position.y : blockContent.position.y,
+				left: currentPosition.x,
+				top: currentPosition.y,
 				filter:
 					type === 'drag'
 						? `drop-shadow(${ColorPalette[getColor(blockContent.type)].shadow})`
 						: 'none',
-				touchAction: 'none' // ポインターイベント処理のためにタッチアクションを無効化
+				touchAction: 'none'
 			}}
 		>
 			<div
-				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
+				className="rel flex h:48px w:fit align-items:center justify-content:center r:6px px:10px pb:4px vertical:middle"
 				data-id={blockContent.id}
 			>
 				{/* 入力コネクタ */}
 				{blockContent.connections.input && (
 					<span
 						data-id={blockContent.id}
-						className="input absolute h-2 w-6"
+						className="input abs h:8px w:24px"
 						style={{
 							left: blockContent.connections.input.x,
 							top: blockContent.connections.input.y
@@ -554,7 +501,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				{blockContent.connections.output && (
 					<span
 						data-id={blockContent.id}
-						className="output absolute h-2 w-6"
+						className="output abs h:8px w:24px"
 						style={{
 							bottom: blockContent.connections.output.y,
 							left: blockContent.connections.output.x
@@ -563,9 +510,9 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				)}
 
 				{/* ブロック背景 */}
-				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
+				<div className="abs left:0 top:0 z:-10 h:0 w:full">
 					<svg
-						className="pointer-events-none"
+						className="pointer-events:none"
 						height={size.height + 55}
 						width={size.width + 2}
 						role="none"
@@ -585,24 +532,24 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 
 				{/* ブロックコンテンツ */}
 				<div
-					className="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
+					className="flex h:full w:full flex:row align-items:center justify-content:center gap:16px vertical:middle"
 					style={{
 						color: ColorPalette[getColor(blockContent.type)].text
 					}}
 				>
-					<div className="whitespace-nowrap font-bold">{blockContent.title}</div>
+					<div className="white-space:nowrap font:bold">{blockContent.title}</div>
 
 					{/* フィールド */}
-					<div className="flex flex-row gap-2 align-middle">
+					<div className="flex flex:row gap:8px vertical:middle">
 						{blockContent.contents.map((item, index) => (
 							<React.Fragment key={index}>
 								{item.type === 'separator' ? (
-									<div className="h-5 w-[1px] bg-blue-950"></div>
+									<div className="h:20px w:1px bg:#172554"></div>
 								) : (
-									<div className="flex flex-row items-center justify-center gap-1.5">
-										<div className="whitespace-nowrap">{item.content.title}</div>
+									<div className="flex flex:row align-items:center justify-content:center gap:6px">
+										<div className="white-space:nowrap">{item.content.title}</div>
 										<div
-											className="field flex h-full items-center justify-center rounded-full border-2 px-2"
+											className="field flex h:full align-items:center justify-content:center rounded b:2px px:8px"
 											style={{
 												backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 												borderColor: ColorPalette[getColor(blockContent.type)].border
@@ -611,7 +558,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 											<AutoResizeInput
 												initialValue={item.content.value}
 												type="text"
-												className="bg-transparent text-slate-900 focus:outline-none"
+												className="bg:transparent f:#0f172a outline:none:focus"
 												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
 													blockStore.updateValue(blockContent.id, item.id, e.currentTarget.value);
 												}}
@@ -626,7 +573,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 					{/* フラグアイコン */}
 					{isFlag && (
 						<button
-							className="field flex items-center justify-center rounded-full border-2 p-1"
+							className="field flex align-items:center justify-content:center rounded b:2px p:4px"
 							style={{
 								backgroundColor: ColorPalette[getColor(blockContent.type)].text,
 								borderColor: ColorPalette[getColor(blockContent.type)].border
@@ -637,7 +584,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 								navigator.clipboard.writeText(output).then((r) => r);
 							}}
 						>
-							<Icon icon="ic:round-flag" className="field h-5 w-5 text-green-400" />
+							<Icon icon="ic:round-flag" className="field h:20px w:20px f:#4ade80" />
 						</button>
 					)}
 				</div>

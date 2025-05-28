@@ -38,5 +38,4 @@ const draggingStore = create<Store>()(
 	)
 );
 
-
 export { draggingStore };

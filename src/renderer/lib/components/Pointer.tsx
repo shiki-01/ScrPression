@@ -18,7 +18,7 @@ const Pointer: React.FC<PointerProps> = ({ position, isLeave }) => {
 	return (
 		<div
 			ref={pointerRef}
-			className="pointer-events-none fixed"
+			className="pointer-events:none fixed"
 			style={{
 				visibility: isLeave ? 'hidden' : 'visible',
 				top: position.y,
@@ -32,7 +32,7 @@ const Pointer: React.FC<PointerProps> = ({ position, isLeave }) => {
 				style={{
 					filter: 'drop-shadow(0px 8px 8px rgba(0, 0, 0, 0.2))'
 				}}
-				className="pointer-events-none max-h-[40px] max-w-[25px] drop-shadow-2xl"
+				className="pointer-events:none max-h:40px max-w:25px drop-shadow:0|25px|50px|-12px|rgba(0,0,0,0.2)"
 			/>
 		</div>
 	);

@@ -20,11 +20,11 @@ const baseDialog: React.FC<BaseDialogProps> = ({ onClose, size, children }) => {
 				onClick={() => {
 					onClose();
 				}}
-				className="fixed left-0 top-0 z-40 h-full w-full bg-slate-800/20"
+				className="fixed left:0 top:0 z:40 h:full w:full bg:rgba(30|41|59|20)"
 			/>
 			<div
 				style={{ width: size.width + 'px', height: size.height + 'px' }}
-				className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 rounded-lg bg-slate-50 p-5 text-slate-800 shadow-lg"
+				className="fixed left:50% top:50% z:50 translate(-50%,-50%) r:8px bg:#f8fafc p:20px f:#1e293b box-shadow:0|10px|15px|-3px|rgba(0,0,0,0.2)"
 			>
 				{children}
 			</div>

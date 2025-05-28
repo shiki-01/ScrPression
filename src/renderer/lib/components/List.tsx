@@ -19,7 +19,6 @@ interface ListProps {
  */
 const List: React.FC<ListProps> = ({ id }) => {
 	const listStore = ListStore.getInstance();
-
 	const content = listStore.getList(id) as BlockType;
 	const blockRef = useRef<HTMLDivElement>(null);
 	const [blockContent, setBlockContent] = useState<BlockType>(listStore.getList(id) as BlockType);
@@ -28,7 +27,13 @@ const List: React.FC<ListProps> = ({ id }) => {
 
 	const { setDraggingBlock } = draggingStore();
 
-	const blockAddedRef = useRef(false);
+	// ドラッグ状態を管理するref
+	const dragStateRef = useRef({
+		isDragging: false,
+		hasCreatedBlock: false,
+		startPosition: { x: 0, y: 0 },
+		blockId: ''
+	});
 
 	const updateSize = useCallback(() => {
 		const store = ListStore.getInstance();
@@ -51,7 +56,7 @@ const List: React.FC<ListProps> = ({ id }) => {
 
 	const getPath = useCallback(() => {
 		return path(blockContent.type, size);
-	}, [size.width, size.height, isFlag]);
+	}, [blockContent.type, size]);
 
 	useEffect(() => {
 		setIsFlag(content.type === 'flag');
@@ -59,7 +64,6 @@ const List: React.FC<ListProps> = ({ id }) => {
 
 	useEffect(() => {
 		const store = ListStore.getInstance();
-
 		setSize(blockContent.size);
 
 		const unsubscribe = store.subscribe((event) => {
@@ -99,30 +103,93 @@ const List: React.FC<ListProps> = ({ id }) => {
 		};
 	}, [updateSize]);
 
-	const addBlock = (event: PointerEvent) => {
+	// ブロックを作成してドラッグ開始
+	const createAndStartDrag = useCallback((event: PointerEvent) => {
+		if (dragStateRef.current.hasCreatedBlock) return;
+
 		const blockStore = BlockStore.getInstance();
-		const newId = blockStore.addBlock(content);
-		const offset = blockRef.current!.getBoundingClientRect();
-		setDraggingBlock(newId, { x: event.clientX - offset.left, y: event.clientY - offset.top });
-	};
+		const newBlockId = blockStore.addBlock(content);
 
-	const handlePointerDown = () => {
-		blockAddedRef.current = false;
-		window.addEventListener('pointermove', handlePointerMove);
-		window.addEventListener('pointerup', handlePointerUp);
-	};
+		if (!blockRef.current) return;
 
-	const handlePointerMove = (event: PointerEvent) => {
-		if (!blockAddedRef.current) {
-			addBlock(event);
-			blockAddedRef.current = true;
-		}
-	};
+		// ブロックを作成時にドラッグ可能な位置に配置（重要：初期位置を画面座標で設定）
+		blockStore.updateBlock(newBlockId, {
+			position: {
+				x: event.clientX,
+				y: event.clientY
+			}
+		});
 
-	const handlePointerUp = () => {
-		window.removeEventListener('pointermove', handlePointerMove);
-		window.removeEventListener('pointerup', handlePointerUp);
-	};
+		// ドラッグオフセットをブロックの中心に設定
+		const blockSize = content.size;
+		setDraggingBlock(newBlockId, {
+			x: blockSize.width / 2,
+			y: blockSize.height / 2
+		});
+
+		dragStateRef.current = {
+			isDragging: true,
+			hasCreatedBlock: true,
+			startPosition: { x: event.clientX, y: event.clientY },
+			blockId: newBlockId
+		};
+	}, [content, setDraggingBlock]);
+
+	// ポインターダウンイベントハンドラ
+	const handlePointerDown = useCallback((event: React.PointerEvent) => {
+		if (event.button !== 0) return; // 左クリックのみ
+
+		// ドラッグ状態をリセット
+		dragStateRef.current = {
+			isDragging: false,
+			hasCreatedBlock: false,
+			startPosition: { x: event.clientX, y: event.clientY },
+			blockId: ''
+		};
+
+		// イベントリスナーを追加
+		const handlePointerMove = (moveEvent: PointerEvent) => {
+			if (!dragStateRef.current.isDragging) {
+				// 最小限の移動距離（5px）を超えた場合にドラッグ開始
+				const deltaX = Math.abs(moveEvent.clientX - dragStateRef.current.startPosition.x);
+				const deltaY = Math.abs(moveEvent.clientY - dragStateRef.current.startPosition.y);
+
+				if (deltaX > 5 || deltaY > 5) {
+					createAndStartDrag(moveEvent);
+				}
+			}
+		};
+
+		const handlePointerUp = () => {
+			// イベントリスナーをクリーンアップ
+			document.removeEventListener('pointermove', handlePointerMove);
+			document.removeEventListener('pointerup', handlePointerUp);
+
+			// ドラッグ状態をリセット
+			dragStateRef.current = {
+				isDragging: false,
+				hasCreatedBlock: false,
+				startPosition: { x: 0, y: 0 },
+				blockId: ''
+			};
+		};
+
+		// グローバルイベントリスナーを追加
+		document.addEventListener('pointermove', handlePointerMove, { passive: false });
+		document.addEventListener('pointerup', handlePointerUp, { passive: false });
+
+		event.preventDefault();
+		event.stopPropagation();
+	}, [createAndStartDrag]);
+
+	// クリーンアップ用のuseEffect
+	useEffect(() => {
+		return () => {
+			// コンポーネントがアンマウントされる際にイベントリスナーをクリーンアップ
+			document.removeEventListener('pointermove', () => { });
+			document.removeEventListener('pointerup', () => { });
+		};
+	}, []);
 
 	return (
 		<div
@@ -130,16 +197,20 @@ const List: React.FC<ListProps> = ({ id }) => {
 			className="cancel"
 			onPointerDown={handlePointerDown}
 			role="button"
-			style={{ zIndex: content.zIndex }}
+			style={{
+				zIndex: content.zIndex,
+				touchAction: 'none', // タッチデバイスでのスクロールを防止
+				userSelect: 'none' // テキスト選択を防止
+			}}
 			tabIndex={0}
 		>
 			<div
-				className="relative flex h-12 w-fit cursor-pointer items-center justify-center rounded-md px-2.5 pb-1 align-middle"
+				className="rel flex h:48px w:fit cursor:pointer align-items:center justify-content:center r:6px px:10px pb:4px vertical:middle"
 				data-id={content.id}
 			>
-				<div className="absolute left-0 top-0 -z-10 h-0 w-full">
+				<div className="abs left:0 top:0 z:-10 h:0 w:full">
 					<svg
-						className=""
+						className="pointer-events:none"
 						height={size.height + 100}
 						width={size.width + 2}
 						role="none"
@@ -157,20 +228,20 @@ const List: React.FC<ListProps> = ({ id }) => {
 					</svg>
 				</div>
 				<div
-					className="flex h-full w-full flex-row items-center justify-center gap-4 align-middle"
+					className="flex h:full w:full flex:row align-items:center justify-content:center gap:16px vertical:middle"
 					style={{ color: ColorPalette[getColor(content.type)].text }}
 				>
 					<div className="whitespace-nowrap font-bold">{content.title}</div>
-					<div className="flex flex-row gap-2 align-middle">
+					<div className="flex flex:row gap:8px vertical:middle">
 						{content.contents.map((item, index) => (
-							<div key={index} className="flex flex-row items-center justify-center gap-1">
+							<div key={index} className="flex flex:row align-items:center justify-content:center gap:4px">
 								{item.type === 'separator' ? (
-									<div className="h-5 w-[1px] bg-blue-950"></div>
+									<div className="h:20px w:1px bg:#172554"></div>
 								) : (
 									<>
 										<div>{item.content.title}</div>
 										<div
-											className="flex items-center justify-center rounded-full border-2 px-2 focus:outline-none"
+											className="flex align-items:center justify-content:center rounded b:2px px:8px outline:none:focus"
 											style={{
 												backgroundColor: ColorPalette[getColor(content.type)].text,
 												borderColor: ColorPalette[getColor(content.type)].border
@@ -179,7 +250,11 @@ const List: React.FC<ListProps> = ({ id }) => {
 											<AutoResizeInput
 												initialValue={item.content.value}
 												type="text"
-												className="bg-transparent text-slate-900 focus:outline-none"
+												className="bg:transparent fg:#0f172a outline:none:focus"
+												onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+													// 必要に応じて値の更新処理を追加
+													console.log('Input changed:', e.target.value);
+												}}
 											/>
 										</div>
 									</>
@@ -189,13 +264,16 @@ const List: React.FC<ListProps> = ({ id }) => {
 					</div>
 					{isFlag && (
 						<button
-							className="flex items-center justify-center rounded-full border-2 p-1"
+							className="flex align-items:center justify-content:center rounded b:2px p:4px"
 							style={{
 								backgroundColor: ColorPalette[getColor(content.type)].text,
 								borderColor: ColorPalette[getColor(content.type)].border
 							}}
+							onClick={(e) => {
+								e.stopPropagation(); // ボタンクリックがドラッグイベントを起動しないようにする
+							}}
 						>
-							<Icon icon="ic:round-flag" className="h-5 w-5 text-green-400" />
+							<Icon icon="ic:round-flag" className="h:20px w:20px f:#4ade80" />
 						</button>
 					)}
 				</div>
