@@ -9,166 +9,6 @@ import { path } from '$lib/utils/path';
 import { CanvasStore } from '$lib/canvas/store.ts';
 import { defaultBlock } from '$lib/block';
 
-/**
- * ブロックのドラッグ処理を管理するカスタムフック
- */
-const useBlockDrag = (
-	blockRef: React.RefObject<HTMLElement | null>,
-	blockContent: BlockType,
-	type: 'block' | 'drag',
-	position: Position,
-	setPosition: (pos: Position) => void,
-	onDragStart: (event: PointerEvent, offset: Position) => void,
-	onDragEnd: (event: PointerEvent, position: Position) => void,
-) => {
-	const blockStore = BlockStore.getInstance();
-	const canvasStore = CanvasStore.getInstance();
-	const [isDragging, setIsDragging] = useState(false);
-	const startPos = useRef({ x: 0, y: 0 });
-	const dragOffset = useRef({ x: 0, y: 0 });
-	console.log('useBlockDrag');
-
-	const handlePointerDown = useCallback(
-		(e: PointerEvent) => {
-			if (e.button !== 0 || !blockRef.current) return;
-
-			const rect = blockRef.current.getBoundingClientRect();
-			dragOffset.current = {
-				x: e.clientX - rect.left,
-				y: e.clientY - rect.top
-			};
-
-			startPos.current = {
-				x: type === 'drag' ? position.x : blockContent.position.x,
-				y: type === 'drag' ? position.y : blockContent.position.y
-			};
-
-			blockRef.current.setPointerCapture(e.pointerId);
-			setIsDragging(true);
-
-			if (onDragStart) {
-				onDragStart(e, dragOffset.current);
-			}
-
-			e.stopPropagation();
-			e.preventDefault();
-		},
-		[blockContent.position, type, position, onDragStart]
-	);
-
-	const handlePointerMove = useCallback(
-		(e: PointerEvent) => {
-			console.log('handlePointerMove');
-			if (!isDragging) return;
-			console.log('isDragging', isDragging);
-
-			if (type === 'drag') {
-				// ドラッグタイプは直接position stateを更新
-				setPosition({
-					x: e.clientX - dragOffset.current.x,
-					y: e.clientY - dragOffset.current.y
-				});
-			} else {
-				// 通常ブロックはstoreを通じて更新
-				const canvasPos = canvasStore.getCanvasPos();
-				const newPosition = {
-					x: e.clientX - dragOffset.current.x - canvasPos.x,
-					y: e.clientY - dragOffset.current.y - canvasPos.y
-				};
-				blockStore.updateBlock(blockContent.id, { position: newPosition });
-				updateChildrenPositions(blockContent.id, {
-					x: e.clientX - dragOffset.current.x,
-					y: e.clientY - dragOffset.current.y
-				});
-			}
-		},
-		[isDragging, type, setPosition, blockContent.id, canvasStore, blockStore]
-	);
-
-	const handlePointerUp = useCallback(
-		(e: PointerEvent) => {
-			if (!isDragging || !blockRef.current) return;
-
-			blockRef.current.releasePointerCapture(e.pointerId);
-			setIsDragging(false);
-
-			if (onDragEnd) {
-				onDragEnd(e, {
-					x: e.clientX - dragOffset.current.x,
-					y: e.clientY - dragOffset.current.y
-				});
-			}
-
-			e.stopPropagation();
-			e.preventDefault();
-		},
-		[isDragging, onDragEnd]
-	);
-
-	// 子ブロックの位置を更新する関数
-	const updateChildrenPositions = useCallback(
-		(parentId: string, parentPosition: Position) => {
-			const block = blockStore.getBlock(parentId);
-			if (!block) return;
-
-			if (block.childId) {
-				let childId = block.childId;
-				let offset = 42;
-
-				while (childId) {
-					const childBlock = blockStore.getBlock(childId);
-					if (!childBlock) break;
-
-					const newPos = {
-						x: parentPosition.x - 250 - canvasStore.getCanvasPos().x,
-						y: parentPosition.y + offset - 50 - canvasStore.getCanvasPos().y
-					};
-
-					blockStore.updateBlock(childId, { position: newPos });
-
-					childId = childBlock.childId || '';
-					offset += 42;
-				}
-			}
-
-			if (block.type === 'loop' && block.enclose) {
-				const encloseOffset = block.enclose.offset;
-				let offset = 0;
-
-				block.enclose.contents.forEach((innerBlock) => {
-					offset += 42;
-					const newPos = {
-						x: parentPosition.x + encloseOffset.x - canvasStore.getCanvasPos().x,
-						y: parentPosition.y + offset + encloseOffset.y - canvasStore.getCanvasPos().y
-					};
-
-					blockStore.updateBlock(innerBlock.id, { position: newPos });
-				});
-			}
-		},
-		[blockStore, canvasStore]
-	);
-
-	// イベントハンドラを設定
-	useEffect(() => {
-		const element = blockRef.current;
-		if (!element) return;
-
-		console.log('addEventListener');
-
-		element.addEventListener('pointerdown', handlePointerDown, { passive: false });
-		element.addEventListener('pointermove', handlePointerMove, { passive: false });
-		element.addEventListener('pointerup', handlePointerUp, { passive: false });
-
-		return () => {
-			element.removeEventListener('pointerdown', handlePointerDown);
-			element.removeEventListener('pointermove', handlePointerMove);
-			element.removeEventListener('pointerup', handlePointerUp);
-		};
-	}, [handlePointerDown, handlePointerMove, handlePointerUp]);
-
-	return { isDragging };
-};
 
 /**
  * ブロックのリサイズを監視するカスタムフック
@@ -219,12 +59,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	const [blockContent, setBlockContent] = useState(blockStore.getBlock(id) || defaultBlock);
 	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(blockContent.type === 'flag');
-
-	// ドラッグ用の位置状態
-	const [position, setPosition] = useState({
-		x: type === 'drag' && initialPosition ? initialPosition.x : blockContent.position.x,
-		y: type === 'drag' && initialPosition ? initialPosition.y : blockContent.position.y
-	});
 
 	// ブロックとブロックの接続を処理
 	const handleConnect = useCallback(() => {
@@ -427,18 +261,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	// サイズ変更の監視を設定
 	useBlockResize(blockRef, handleResize);
 
-	// ドラッグ処理を設定（type関係なく常に設定）
-	console.log('useBlockDrag');
-	useBlockDrag(
-		blockRef,
-		blockContent,
-		type,
-		position,
-		setPosition,
-		handleDragStart,
-		handleDragEnd
-	);
-
 	// ブロックの更新を監視
 	useEffect(() => {
 		return blockStore.subscribe((event) => {
@@ -457,12 +279,52 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		return path(blockContent.type, size);
 	}, [blockContent.type, size]);
 
-	// 現在の位置を取得（typeに応じて切り替え）
-	const getCurrentPosition = () => {
-		return type === 'drag' ? position : blockContent.position;
+	const useDragOnMount = (onDragEnd: () => void) => {
+		const [position, setPosition] = useState({ x: 0, y: 0 });
+		const [isDragging, setIsDragging] = useState(false);
+		const dragStarted = useRef(false);
+		const initialPos = useRef({ x: 0, y: 0 });
+
+		useEffect(() => {
+			// マウント時に即座にドラッグ状態を開始
+			const handleMouseMove = (event: MouseEvent) => {
+				if (!dragStarted.current) {
+					// 最初のマウスムーブで初期位置を記録
+					initialPos.current = { x: event.clientX, y: event.clientY };
+					dragStarted.current = true;
+					setIsDragging(true);
+				}
+
+				setPosition({
+					x: event.clientX - initialPos.current.x,
+					y: event.clientY - initialPos.current.y
+				});
+			};
+
+			const handleMouseUp = () => {
+				setIsDragging(false);
+				onDragEnd?.();
+				// イベントリスナーを削除
+				document.removeEventListener('mousemove', handleMouseMove);
+				document.removeEventListener('mouseup', handleMouseUp);
+			};
+
+			// マウント時に即座にリスナーを追加
+			document.addEventListener('mousemove', handleMouseMove);
+			document.addEventListener('mouseup', handleMouseUp);
+
+			return () => {
+				document.removeEventListener('mousemove', handleMouseMove);
+				document.removeEventListener('mouseup', handleMouseUp);
+			};
+		}, [onDragEnd]);
+
+		return { position, isDragging };
 	};
 
-	const currentPosition = getCurrentPosition();
+	const { position, isDragging } = useDragOnMount(() => {
+		console.log('ドラッグ終了');
+	});
 
 	// ブロックのレンダリング
 	return (
@@ -472,8 +334,8 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			style={{
 				position: type === 'drag' ? 'fixed' : 'absolute',
 				zIndex: type === 'drag' ? 100 : blockContent.zIndex,
-				left: currentPosition.x,
-				top: currentPosition.y,
+				left: position.x,
+				top: position.y,
 				filter:
 					type === 'drag'
 						? `drop-shadow(${ColorPalette[getColor(blockContent.type)].shadow})`
