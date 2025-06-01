@@ -496,7 +496,7 @@ const App: React.FC = () => {
 							<Block
 								type="drag"
 								id={BlockStore.getInstance().getBlock(dragging)?.id || ''}
-								initialPosition={initialPosition}
+								initialPosition={BlockStore.getInstance().getBlock(dragging)?.position || { x: 0, y: 0 }}
 								onEnd={() => {}}
 							/>
 						)}

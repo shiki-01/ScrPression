@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { PointerEventHandler, useCallback, useEffect, useRef, useState } from 'react';
 import { Icon } from '@iconify/react';
 import AutoResizeInput from '$lib/components/AutoResizeInput';
 import { BlockType, Position, Size } from '$lib/block/type';
@@ -8,6 +8,7 @@ import { ColorPalette, getColor } from '$lib/utils/color';
 import { path } from '$lib/utils/path';
 import { CanvasStore } from '$lib/canvas/store.ts';
 import { defaultBlock } from '$lib/block';
+import { set } from 'zod';
 
 
 /**
@@ -50,15 +51,21 @@ interface BlockProps {
  * ブロックコンポーネント
  */
 const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
-	const { setDraggingBlock, clearDraggingBlock } = draggingStore();
+	const { getDraggingBlock } = draggingStore();
 	const blockStore = BlockStore.getInstance();
 	const canvasStore = CanvasStore.getInstance();
 	const blockRef = useRef<HTMLDivElement>(null);
+	const initialized = useRef(false);
 
 	// ブロックの状態
 	const [blockContent, setBlockContent] = useState(blockStore.getBlock(id) || defaultBlock);
 	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(blockContent.type === 'flag');
+
+	const [position, setPosition] = useState({ x: 0, y: 0 });
+	const [isDragging, setIsDragging] = useState(true); // マウント時点でドラッグ状態
+	const [isPlaced, setIsPlaced] = useState(false);
+	const [draggingOffset, setDraggingOffset] = useState<Position>({ x: 0, y: 0 });
 
 	// ブロックとブロックの接続を処理
 	const handleConnect = useCallback(() => {
@@ -119,55 +126,6 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		return connected;
 	}, [blockContent, blockStore]);
 
-	const handleDragStart = useCallback(
-		(_e: PointerEvent, offset: Position) => {
-			setDraggingBlock(blockContent.id, offset);
-
-			if (blockContent.parentId) {
-				const parentBlock = blockStore.getBlock(blockContent.parentId);
-				if (parentBlock) {
-					blockStore.updateBlock(blockContent.id, { parentId: '' });
-					blockStore.updateBlock(parentBlock.id, { childId: '' });
-				}
-			}
-		},
-		[blockContent.id, blockContent.parentId, blockStore, setDraggingBlock]
-	);
-
-	const handleDragEnd = useCallback(
-		(e: PointerEvent, finalPosition: Position) => {
-			const elements = document.elementsFromPoint(e.clientX, e.clientY);
-			const shouldRemove = elements.some(
-				(element) => element.classList.contains('trash') || element.classList.contains('block-list')
-			);
-
-			if (shouldRemove) {
-				blockStore.removeBlock(blockContent.id);
-				clearDraggingBlock();
-				return;
-			}
-
-			const connected = handleConnect();
-
-			if (!connected) {
-				const canvasPos = canvasStore.getCanvasPos();
-				blockStore.updateBlock(blockContent.id, {
-					position: {
-						x: finalPosition.x - 250 - canvasPos.x,
-						y: finalPosition.y - 50 - canvasPos.y
-					}
-				});
-				blockStore.updateZIndex(blockContent.id);
-			}
-
-			if (onEnd) {
-				onEnd(finalPosition);
-			}
-
-			clearDraggingBlock();
-		},
-		[blockContent.id, blockStore, canvasStore, clearDraggingBlock, handleConnect, onEnd]
-	);
 
 	const updateConnectedPosition = useCallback(
 		(parentId: string) => {
@@ -279,52 +237,56 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 		return path(blockContent.type, size);
 	}, [blockContent.type, size]);
 
-	const useDragOnMount = (onDragEnd: () => void) => {
-		const [position, setPosition] = useState({ x: 0, y: 0 });
-		const [isDragging, setIsDragging] = useState(false);
-		const dragStarted = useRef(false);
-		const initialPos = useRef({ x: 0, y: 0 });
-
-		useEffect(() => {
-			// マウント時に即座にドラッグ状態を開始
-			const handleMouseMove = (event: MouseEvent) => {
-				if (!dragStarted.current) {
-					// 最初のマウスムーブで初期位置を記録
-					initialPos.current = { x: event.clientX, y: event.clientY };
-					dragStarted.current = true;
-					setIsDragging(true);
-				}
-
-				setPosition({
-					x: event.clientX - initialPos.current.x,
-					y: event.clientY - initialPos.current.y
-				});
+	useEffect(() => {
+		if (initialPosition && !initialized.current && getDraggingBlock() !== null) {
+			const offset = getDraggingBlock()?.offset || { x: 0, y: 0 };
+			setDraggingOffset(offset);
+			const newPosition = {
+				x: initialPosition.x - offset.x,
+				y: initialPosition.y - offset.y
 			};
+			setPosition(newPosition);
+			initialized.current = true;
+		}
+	}, [initialized.current]);
 
-			const handleMouseUp = () => {
-				setIsDragging(false);
-				onDragEnd?.();
-				// イベントリスナーを削除
-				document.removeEventListener('mousemove', handleMouseMove);
-				document.removeEventListener('mouseup', handleMouseUp);
-			};
-
-			// マウント時に即座にリスナーを追加
-			document.addEventListener('mousemove', handleMouseMove);
-			document.addEventListener('mouseup', handleMouseUp);
-
-			return () => {
-				document.removeEventListener('mousemove', handleMouseMove);
-				document.removeEventListener('mouseup', handleMouseUp);
-			};
-		}, [onDragEnd]);
-
-		return { position, isDragging };
+	// ポインターダウンイベント（配置後のドラッグ開始用）
+	const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (isPlaced && blockRef.current) {
+			const newPosition = {
+				x: position.x + 250,
+				y: position.y + 50
+			}
+			setPosition(newPosition);
+			setIsDragging(true);
+			event.preventDefault();
+		}
 	};
 
-	const { position, isDragging } = useDragOnMount(() => {
-		console.log('ドラッグ終了');
-	});
+	// ポインタームーブイベント
+	const handlePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (isDragging) {
+			const newPosition = {
+				x: event.clientX - draggingOffset.x,
+				y: event.clientY - draggingOffset.y
+			};
+			setPosition(newPosition);
+		}
+	};
+
+	// ポインターアップイベント
+	const handlePointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+		if (isDragging) {
+			setIsDragging(false);
+			setIsPlaced(true);
+			// 最終位置を設定
+			const newPosition = {
+				x: event.clientX - 250 - draggingOffset.x,
+				y: event.clientY - 50 - draggingOffset.y
+			};
+			setPosition(newPosition);
+		}
+	};
 
 	// ブロックのレンダリング
 	return (
@@ -332,18 +294,21 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			ref={blockRef}
 			className="cancel"
 			style={{
-				position: type === 'drag' ? 'fixed' : 'absolute',
+				position: isDragging ? 'fixed' : 'absolute',
 				zIndex: type === 'drag' ? 100 : blockContent.zIndex,
 				left: position.x,
 				top: position.y,
 				filter:
-					type === 'drag'
+					isDragging
 						? `drop-shadow(${ColorPalette[getColor(blockContent.type)].shadow})`
 						: 'none',
 				touchAction: 'none'
 			}}
+			onPointerMove={handlePointerMove}
+			onPointerUp={handlePointerUp}
 		>
 			<div
+				onPointerDown={handlePointerDown}
 				className="rel flex h:48px w:fit align-items:center justify-content:center r:6px px:10px pb:4px vertical:middle"
 				data-id={blockContent.id}
 			>

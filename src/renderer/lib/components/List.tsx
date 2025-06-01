@@ -115,16 +115,16 @@ const List: React.FC<ListProps> = ({ id }) => {
 		// ブロックを作成時にドラッグ可能な位置に配置（重要：初期位置を画面座標で設定）
 		blockStore.updateBlock(newBlockId, {
 			position: {
-				x: event.clientX,
+				x: event.clientX ,
 				y: event.clientY
 			}
 		});
 
 		// ドラッグオフセットをブロックの中心に設定
-		const blockSize = content.size;
+		const rect = blockRef.current.getBoundingClientRect();
 		setDraggingBlock(newBlockId, {
-			x: blockSize.width / 2,
-			y: blockSize.height / 2
+			x: event.clientX - rect.left,
+			y: event.clientY - rect.top
 		});
 
 		dragStateRef.current = {
