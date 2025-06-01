@@ -25,7 +25,7 @@ const List: React.FC<ListProps> = ({ id }) => {
 	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(false);
 
-	const { setDraggingBlock } = draggingStore();
+	const { setDraggingBlock, clearDraggingBlock } = draggingStore();
 
 	// ドラッグ状態を管理するref
 	const dragStateRef = useRef({
@@ -112,28 +112,38 @@ const List: React.FC<ListProps> = ({ id }) => {
 
 		if (!blockRef.current) return;
 
-		// ブロックを作成時にドラッグ可能な位置に配置（重要：初期位置を画面座標で設定）
+		const currentPosition = {
+			x: event.clientX,
+			y: event.clientY
+		};
+
+		// 確実にBlockStoreに位置を保存
 		blockStore.updateBlock(newBlockId, {
-			position: {
-				x: event.clientX ,
-				y: event.clientY
-			}
+			position: currentPosition
 		});
 
-		// ドラッグオフセットをブロックの中心に設定
 		const rect = blockRef.current.getBoundingClientRect();
-		setDraggingBlock(newBlockId, {
+		const offset = {
 			x: event.clientX - rect.left,
 			y: event.clientY - rect.top
-		});
+		};
+
+		// draggingStoreをクリアしてから新しい状態を設定
+		clearDraggingBlock();
+
+		// 少し遅延させて確実に設定
+		setTimeout(() => {
+			setDraggingBlock(newBlockId, offset, currentPosition);
+		}, 0);
 
 		dragStateRef.current = {
 			isDragging: true,
 			hasCreatedBlock: true,
-			startPosition: { x: event.clientX, y: event.clientY },
+			startPosition: currentPosition,
 			blockId: newBlockId
 		};
-	}, [content, setDraggingBlock]);
+	}, [content, setDraggingBlock, clearDraggingBlock]);
+
 
 	// ポインターダウンイベントハンドラ
 	const handlePointerDown = useCallback((event: React.PointerEvent) => {

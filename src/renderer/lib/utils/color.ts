@@ -6,7 +6,7 @@ const ColorPalette = {
 		text: '#FFFFFF',
 		bg: '#5A8DEE',
 		border: '#3A6BC1',
-		shadow: '0 4px 6px rgba(90, 141, 238, 0.5)'
+		shadow: '0 10px 4px rgba(90, 141, 238, 0.5)'
 	},
 	red: {
 		title: 'Custom',

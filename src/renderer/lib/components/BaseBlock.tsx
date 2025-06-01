@@ -8,8 +8,6 @@ import { ColorPalette, getColor } from '$lib/utils/color';
 import { path } from '$lib/utils/path';
 import { CanvasStore } from '$lib/canvas/store.ts';
 import { defaultBlock } from '$lib/block';
-import { set } from 'zod';
-
 
 /**
  * ブロックのリサイズを監視するカスタムフック
@@ -42,7 +40,6 @@ const useBlockResize = (blockRef: React.RefObject<HTMLDivElement | null>, onResi
 
 interface BlockProps {
 	id: string;
-	type: 'block' | 'drag';
 	initialPosition?: { x: number; y: number };
 	onEnd?: (position: { x: number; y: number }) => void;
 }
@@ -50,8 +47,8 @@ interface BlockProps {
 /**
  * ブロックコンポーネント
  */
-const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
-	const { getDraggingBlock } = draggingStore();
+const Block: React.FC<BlockProps> = ({ id, initialPosition, onEnd }) => {
+	const { getDraggingBlock, clearDraggingBlock } = draggingStore();
 	const blockStore = BlockStore.getInstance();
 	const canvasStore = CanvasStore.getInstance();
 	const blockRef = useRef<HTMLDivElement>(null);
@@ -62,7 +59,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	const [size, setSize] = useState(blockContent.size);
 	const [isFlag, setIsFlag] = useState(blockContent.type === 'flag');
 
-	const [position, setPosition] = useState({ x: 0, y: 0 });
+	const [position, setPosition] = useState(blockContent.position || { x: 0, y: 0 });
 	const [isDragging, setIsDragging] = useState(true); // マウント時点でドラッグ状態
 	const [isPlaced, setIsPlaced] = useState(false);
 	const [draggingOffset, setDraggingOffset] = useState<Position>({ x: 0, y: 0 });
@@ -238,8 +235,27 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 	}, [blockContent.type, size]);
 
 	useEffect(() => {
-		if (initialPosition && !initialized.current && getDraggingBlock() !== null) {
-			const offset = getDraggingBlock()?.offset || { x: 0, y: 0 };
+		// 新しいブロックの場合は初期化状態をリセット
+		const draggingBlock = getDraggingBlock();
+		if (draggingBlock?.id === id) {
+			initialized.current = false;
+		}
+	}, [id]);
+
+	useEffect(() => {
+		console.log('initialize', initialPosition, initialized.current, isDragging, getDraggingBlock(), BlockStore.getInstance().getBlock(id));
+
+		const draggingBlock = getDraggingBlock();
+		const isMyBlock = draggingBlock?.id === id;
+
+		// より厳密な条件チェック
+		if (initialPosition &&
+			!initialized.current &&
+			isMyBlock &&
+			initialPosition.x !== undefined &&
+			initialPosition.y !== undefined) {
+
+			const offset = draggingBlock?.offset || { x: 0, y: 0 };
 			setDraggingOffset(offset);
 			const newPosition = {
 				x: initialPosition.x - offset.x,
@@ -247,8 +263,11 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			};
 			setPosition(newPosition);
 			initialized.current = true;
+			setIsDragging(true);
+			console.log('Block initialized with position:', newPosition);
 		}
-	}, [initialized.current]);
+	}, [initialPosition, id]);
+
 
 	// ポインターダウンイベント（配置後のドラッグ開始用）
 	const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -285,6 +304,10 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 				y: event.clientY - 50 - draggingOffset.y
 			};
 			setPosition(newPosition);
+
+			if (onEnd) {
+				onEnd(newPosition);
+			}
 		}
 	};
 
@@ -295,14 +318,16 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 			className="cancel"
 			style={{
 				position: isDragging ? 'fixed' : 'absolute',
-				zIndex: type === 'drag' ? 100 : blockContent.zIndex,
+				zIndex: 100,
 				left: position.x,
 				top: position.y,
 				filter:
 					isDragging
 						? `drop-shadow(${ColorPalette[getColor(blockContent.type)].shadow})`
 						: 'none',
-				touchAction: 'none'
+				touchAction: 'none',
+				transform: isDragging ? 'translateY(-1px)' : 'none',
+				transition: 'transform 0.2s ease, filter 0.1s ease',
 			}}
 			onPointerMove={handlePointerMove}
 			onPointerUp={handlePointerUp}
@@ -406,7 +431,7 @@ const Block: React.FC<BlockProps> = ({ id, type, initialPosition, onEnd }) => {
 								borderColor: ColorPalette[getColor(blockContent.type)].border
 							}}
 							onClick={() => {
-								if (type !== 'block') return;
+								if (isDragging) return;
 								const output = formatOutput();
 								navigator.clipboard.writeText(output).then((r) => r);
 							}}

@@ -318,12 +318,7 @@ const App: React.FC = () => {
 
 	const lists = listStore.getLists();
 
-	const [dragging, setDragging] = useState('');
 	const [initialPosition, setInitialPosition] = useState({ x: 0, y: 0 });
-
-	useEffect(() => {
-		setDragging(draggingBlock?.id || '');
-	}, [draggingBlock]);
 
 	const [idList, setIdList] = useState<string[]>([]);
 	const [output, setOutput] = useState('');
@@ -398,9 +393,11 @@ const App: React.FC = () => {
 		const canvasUnsubscribe = canvasStore.subscribe((event) => {
 			switch (event.type) {
 				case 'canvas':
-					{ const canvasPos = canvasStore.getCanvasPos();
-					setCanvasPos(canvasPos);
-					break; }
+					{
+						const canvasPos = canvasStore.getCanvasPos();
+						setCanvasPos(canvasPos);
+						break;
+					}
 			}
 		});
 
@@ -409,6 +406,24 @@ const App: React.FC = () => {
 			canvasUnsubscribe();
 		};
 	}, []);
+
+	const getInitialPosition = () => {
+		if (!draggingBlock?.id) return { x: 0, y: 0 };
+
+		// まずcurrentPositionを優先
+		if (draggingBlock.currentPosition) {
+			return draggingBlock.currentPosition;
+		}
+
+		// 次にBlockStoreから取得
+		const blockData = BlockStore.getInstance().getBlock(draggingBlock.id);
+		if (blockData?.position) {
+			return blockData.position;
+		}
+
+		// フォールバック
+		return { x: 100, y: 100 };
+	};
 
 	return (
 		<main
@@ -424,7 +439,7 @@ const App: React.FC = () => {
 				setPointerLeave(true);
 			}}
 		>
-			<Pointer position={pointerPosition} isLeave={pointerLeave} />
+			{/*<Pointer position={pointerPosition} isLeave={pointerLeave} /> */}
 
 			{isContextMenuOpen && (
 				<ContextMenu position={contextMenuPosition} onClose={() => setIsContextMenuOpen(false)} />
@@ -492,12 +507,11 @@ const App: React.FC = () => {
 				</div>
 				<div className="grid grid-template-rows:1fr|250px">
 					<div className="rel h:full w:full overflow:hidden">
-						{dragging !== '' && BlockStore.getInstance().getBlock(dragging)?.id && (
+						{draggingBlock?.id && BlockStore.getInstance().getBlock(draggingBlock.id) && (
 							<Block
-								type="drag"
-								id={BlockStore.getInstance().getBlock(dragging)?.id || ''}
-								initialPosition={BlockStore.getInstance().getBlock(dragging)?.position || { x: 0, y: 0 }}
-								onEnd={() => {}}
+								id={draggingBlock.id}
+								initialPosition={getInitialPosition()}
+								onEnd={() => { }}
 							/>
 						)}
 						<div
@@ -524,7 +538,7 @@ const App: React.FC = () => {
 							}}
 						>
 							{idList.map((id) => {
-								return dragging !== id && <Block key={id} type="block" id={id} />;
+								return draggingBlock?.id !== id && <Block key={id} id={id} />;
 							})}
 						</div>
 						<div className="trash abs bottom:2 right:2 f:#94a3b8 transition:colors|300 f:#64748b:hover">

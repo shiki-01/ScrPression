@@ -5,8 +5,9 @@ type Store = {
 	draggingBlock: {
 		id: string;
 		offset: { x: number; y: number };
+		currentPosition: { x: number; y: number };
 	} | null;
-	setDraggingBlock: (id: string, offset: { x: number; y: number }) => void;
+	setDraggingBlock: (id: string, offset: { x: number; y: number }, currentPosition: { x: number, y: number }) => void;
 	getDraggingBlock: () => {
 		id: string;
 		offset: { x: number; y: number };
@@ -19,9 +20,9 @@ const draggingStore = create<Store>()(
 		persist(
 			(set, get) => ({
 				draggingBlock: null,
-				setDraggingBlock: (id: string, offset: { x: number; y: number }) => {
+				setDraggingBlock: (id: string, offset: { x: number; y: number }, currentPosition: { x: number, y: number }) => {
 					if (id && offset) {
-						set({ draggingBlock: { id, offset } });
+						set({ draggingBlock: { id, offset, currentPosition } });
 					} else {
 						console.error('Invalid id or offset');
 					}
