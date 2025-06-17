@@ -1,0 +1,37 @@
+[package]
+name = "tpl-dioxus"
+version = "0.1.0"
+authors = ["shiki <0110shiki@gmail.com>"]
+edition = "2021"
+license = "MIT"
+build = "build.rs"
+
+[dependencies]
+dioxus = { version = "0.6.3", features = ["desktop"] }
+dioxus-desktop = { version = "0.6.2", features = ["tokio_runtime"] }
+image = "0.24.7"
+uuid = { version = "1.17.0", features = ["v4"] }
+
+[build-dependencies]
+dioxus-cli = { version = "0.6.0" }
+winres = "0.1"
+
+[features]
+default = ["desktop"]
+desktop = ["dioxus/desktop"]
+
+[profile.release]
+opt-level = "z"
+lto = true
+strip = true
+codegen-units = 1
+
+[profile.wasm-dev]
+inherits = "dev"
+opt-level = 1
+
+[profile.server-dev]
+inherits = "dev"
+
+[profile.android-dev]
+inherits = "dev"

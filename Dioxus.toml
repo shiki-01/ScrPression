@@ -1,0 +1,37 @@
+[application]
+asset_dir = "assets"
+out_dir = "dist"
+
+[web.app]
+title = "tpl-dioxus"
+
+[web.resource]
+style = []
+script = []
+
+[web.resource.dev]
+script = []
+
+[bundle]
+identifier = "com.shiki.tpl-dioxus"
+publisher = "shiki"
+copyright = "Copyright © 2025 shiki"
+category = "DeveloperTools"
+short_description = "Dioxus Desktop App Template"
+long_description = "A template for building desktop applications using Dioxus and Rust."
+resources = [
+    "assets/*",
+    "icons/*",
+]
+icon = [
+    "icons/32x32.ico",
+    "icons/128x128.ico",
+    "icons/512x512.ico",
+    "icons/favicon.ico"
+]
+
+[bundle.windows]
+webview_install_mode = { EmbedBootstrapper = { silent = true } }
+icon_path = "icons/favicon.ico"
+allow_downgrades = true
+tsp = true
