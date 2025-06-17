@@ -79,7 +79,6 @@ pub struct Block {
     pub child_id: Option<String>,
     pub parent_id: Option<String>,
     pub position: Position,
-    pub size: Size,
     pub z_index: i32,
 }
 
@@ -100,7 +99,6 @@ impl Block {
             child_id: None,
             parent_id: None,
             position,
-            size: Size { width: 150.0, height: 60.0 },
             z_index: 0,
         }
     }

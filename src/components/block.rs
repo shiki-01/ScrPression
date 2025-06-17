@@ -7,6 +7,7 @@ use crate::{
     state::app_state::BlockList,
     utils::block::Size,
 };
+use tracing::{info, warn, error, debug};
 use dioxus::prelude::*;
 
 #[derive(Clone, PartialEq)]
@@ -24,6 +25,8 @@ pub fn DraggableBlock(
     let mut is_dragging = use_signal(|| false);
     let mut size_signal = use_signal(|| Size::new(150.0, 60.0));
 
+    let content_ref = use_signal(|| None::<MountedData>);
+
     let (block_id, _is_list) = match &block_data {
         BlockData::Block(block) => (block.id.clone(), false),
         BlockData::BlockList(block_list) => (block_list.name.clone(), true),
@@ -34,21 +37,74 @@ pub fn DraggableBlock(
         BlockData::BlockList(block_list) => block_list.block.content.clone(),
     };
 
-    let mut size = size_signal();
-    let mut path = generate_path_string(&PathType::Move, &size);
+    let mut is_calculating = use_signal(|| false);
 
-    let block_data_for_effect = block_data.clone();
-    use_effect(move || {
-        if let BlockData::Block(block) = &block_data_for_effect {
-            let dragging = app_state.read().dragging.clone();
-            is_dragging.set(
-                dragging
-                    .as_ref()
-                    .map(|(id, _, _)| id == &block.id.clone())
-                    .unwrap_or(false),
-            );
+    // サイズ計算関数を簡素化
+    let calculate_size = use_callback(move |_| {
+        if is_calculating() {
+            return; // 既に計算中の場合は早期リターン
+        }
+        
+        is_calculating.set(true);
+        info!("Calculating size for block:");
+        
+        spawn({
+            let content_ref = content_ref.clone();
+            
+            async move {
+                // 短い遅延でDOMの安定を待つ
+                gloo_timers::future::TimeoutFuture::new(50).await;
+                
+                if let Some(mounted) = content_ref.read().as_ref() {
+                    if let Ok(rect) = mounted.get_client_rect().await {
+                        let content_width = rect.width();
+                        let content_height = rect.height();
+                        
+                        if content_width > 0.0 && content_height > 0.0 {
+                            let min_width = 150.0;
+                            let min_height = 60.0;
+                            
+                            let new_width = (content_width + 40.0).max(min_width);
+                            let new_height = (content_height + 40.0).max(min_height);
+                            
+                            let new_size = Size::new(new_width, new_height);
+                            let current_size = size_signal.read().clone();
+                            let size_changed = (current_size.width - new_width).abs() > 1.0 
+                                || (current_size.height - new_height).abs() > 1.0;
+                            
+                            if size_changed {
+                                size_signal.set(new_size);
+                            }
+                        }
+                    }
+                }
+                
+                is_calculating.set(false);
+            }
+        });
+    });
+
+    // ドラッグ状態の更新
+    use_effect({
+        let app_state = app_state.clone();
+        let block_id = block_id.clone();
+        let block_data = block_data.clone();
+        
+        move || {
+            if let BlockData::Block(_) = &block_data {
+                let dragging = app_state.read().dragging.clone();
+                is_dragging.set(
+                    dragging
+                        .as_ref()
+                        .map(|(id, _, _)| id == &block_id)
+                        .unwrap_or(false),
+                );
+            }
         }
     });
+
+    let mut size = size_signal();
+    let path = generate_path_string(&PathType::Move, &size);
 
     rsx! {
         div {
@@ -115,6 +171,7 @@ pub fn DraggableBlock(
                                             oninput: {
                                                 let content_id = block_content.id.clone();
                                                 let block_id = block_id.clone();
+                                                let calculate_size = calculate_size.clone();
                                                 move |e: Event<FormData>| {
                                                     e.stop_propagation();
                                                     let mut state = app_state.write();
@@ -122,6 +179,8 @@ pub fn DraggableBlock(
 
                                                     state.update_block_content(&block_id, &content_id, &value);
                                                     drop(state);
+
+                                                    calculate_size(());
                                                 }
                                             },
                                             style: "border: 2px solid #3A6BC1; border-radius: 9999px; min-width: 60px; width: auto; max-width: calc(100% - 40px); flex: 0 1 auto;",

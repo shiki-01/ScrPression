@@ -34,7 +34,6 @@ pub fn Sidebar() -> Element {
                 child_id: None,
                 parent_id: None,
                 position: Position { x: 0.0, y: 0.0 },
-                size: Size { width: 150.0, height: 60.0 },
                 z_index: 0,
             },
         });
@@ -50,7 +49,6 @@ pub fn Sidebar() -> Element {
                 child_id: None,
                 parent_id: None,
                 position: Position { x: 0.0, y: 0.0 },
-                size: Size { width: 150.0, height: 60.0 },
                 z_index: 1,
             },
         });

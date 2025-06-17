@@ -11,6 +11,9 @@ dioxus = { version = "0.6.3", features = ["desktop"] }
 dioxus-desktop = { version = "0.6.2", features = ["tokio_runtime"] }
 image = "0.24.7"
 uuid = { version = "1.17.0", features = ["v4"] }
+gloo-timers = { version = "0.3", features = ["futures"] }
+tracing = "0.1"
+tracing-subscriber = "0.3"
 
 [build-dependencies]
 dioxus-cli = { version = "0.6.0" }
